@@ -14,7 +14,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final UserEntityAssembler assembler;
 
     public UserRepositoryImpl(UserPersistenceRepository persistenceRepository,
-                                 UserEntityAssembler assembler) {
+                              UserEntityAssembler assembler) {
         this.persistenceRepository = persistenceRepository;
         this.assembler = assembler;
     }
@@ -32,13 +32,19 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return persistenceRepository.existsByEmail(email);
+    public Optional<User> findByAccountId(Long accountId) {
+        return persistenceRepository.findByAccountId(accountId)
+                .map(assembler::toDomainFromPersistenceEntity);
     }
 
     @Override
-    public User save(User User) {
-        var entity = assembler.toPersistenceEntityFromDomain(User);
+    public boolean existsById(Long id) {
+        return persistenceRepository.existsById(id);
+    }
+
+    @Override
+    public User save(User user) {
+        var entity = assembler.toPersistenceEntityFromDomain(user);
         var saved = persistenceRepository.save(entity);
         return assembler.toDomainFromPersistenceEntity(saved);
     }

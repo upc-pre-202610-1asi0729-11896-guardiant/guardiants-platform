@@ -1,16 +1,12 @@
 package com.guardiants.platform.iam.infrastructure.persistence.jpa.adapters;
 
+import com.guardiants.platform.iam.domain.model.aggregates.Session;
+import com.guardiants.platform.iam.domain.model.valueobjects.SessionStatus;
 import com.guardiants.platform.iam.domain.repositories.SessionRepository;
 import com.guardiants.platform.iam.infrastructure.persistence.jpa.assemblers.SessionEntityAssembler;
 import com.guardiants.platform.iam.infrastructure.persistence.jpa.repositories.SessionPersistenceRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
-
-/*
-*  Optional<Session> findById(Long id);
-    Optional<Session> findByRefreshToken(String refreshToken);
-    Optional<Session> findActiveByUserId(Long userId);
-    Session save(Session session);*/
 
 @Repository
 public class SessionRepositoryImpl implements SessionRepository {
@@ -38,13 +34,14 @@ public class SessionRepositoryImpl implements SessionRepository {
 
     @Override
     public Optional<Session> findActiveByUserId(Long userId) {
-        return persistenceRepository.findFirstByUserIdAndStatus(Long userId);
+        return persistenceRepository
+                .findFirstByUserIdAndStatus(userId, SessionStatus.ACTIVE.name())
+                .map(assembler::toDomainFromPersistenceEntity);
     }
-/*
-* findActiveByUserId(Long userId);*/
+
     @Override
-    public Session save(Session Session) {
-        var entity = assembler.toPersistenceEntityFromDomain(Session);
+    public Session save(Session session) {
+        var entity = assembler.toPersistenceEntityFromDomain(session);
         var saved = persistenceRepository.save(entity);
         return assembler.toDomainFromPersistenceEntity(saved);
     }
