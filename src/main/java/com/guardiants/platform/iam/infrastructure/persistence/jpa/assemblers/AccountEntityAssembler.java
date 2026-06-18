@@ -1,5 +1,6 @@
 package com.guardiants.platform.iam.infrastructure.persistence.jpa.assemblers;
 
+import com.guardiants.platform.iam.domain.model.aggregates.Account;
 import com.guardiants.platform.iam.domain.model.commands.RegisterAccountCommand;
 import com.guardiants.platform.iam.domain.model.valueobjects.ProfileType;
 import com.guardiants.platform.iam.infrastructure.persistence.jpa.entities.AccountPersistenceEntity;
