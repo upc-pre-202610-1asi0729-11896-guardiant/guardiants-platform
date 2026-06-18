@@ -1,6 +1,5 @@
 package com.guardiants.platform.iam.infrastructure.persistence.jpa.assemblers;
 
-import com.guardiants.platform.iam.domain.model.aggregates.Session;
 import com.guardiants.platform.iam.domain.model.commands.RegisterSessionCommand;
 import com.guardiants.platform.iam.domain.model.valueobjects.ProfileType;
 import com.guardiants.platform.iam.infrastructure.persistence.jpa.entities.SessionPersistenceEntity;

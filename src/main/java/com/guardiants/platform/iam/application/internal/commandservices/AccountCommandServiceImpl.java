@@ -4,7 +4,6 @@ import com.guardiants.platform.iam.application.commandservices.AccountCommandFai
 import com.guardiants.platform.iam.application.commandservices.AccountCommandService;
 import com.guardiants.platform.iam.application.internal.outboundservices.email.EmailVerificationPort;
 import com.guardiants.platform.iam.application.internal.outboundservices.events.IamEventPublisher;
-import com.guardiants.platform.iam.domain.model.aggregates.Account;
 import com.guardiants.platform.iam.domain.model.aggregates.User;
 import com.guardiants.platform.iam.domain.model.commands.RegisterAccountCommand;
 import com.guardiants.platform.iam.domain.model.events.AccountRegisteredEvent;
