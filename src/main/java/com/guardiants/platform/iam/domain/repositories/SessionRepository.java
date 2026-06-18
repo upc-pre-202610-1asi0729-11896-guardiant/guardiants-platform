@@ -1,5 +1,6 @@
 package com.guardiants.platform.iam.domain.repositories;
 
+import com.guardiants.platform.iam.domain.model.aggregates.Session;
 import java.util.Optional;
 
 public interface SessionRepository {
