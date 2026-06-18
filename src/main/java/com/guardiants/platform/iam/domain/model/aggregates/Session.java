@@ -1,5 +1,6 @@
 package com.guardiants.platform.iam.domain.model.aggregates;
 
+import com.guardiants.platform.iam.domain.model.commands.LoginCommand;
 import com.guardiants.platform.iam.domain.model.valueobjects.SessionStatus;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
@@ -44,4 +45,19 @@ public class Session extends AbstractDomainAggregateRoot<Session> {
         if (isExpired()) return 0;
         return java.time.Duration.between(Instant.now(), expiresAt).toMinutes();
     }
+    public Session(LoginCommand command, String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.issuedAt = Instant.now();
+        this.expiresAt = Instant.now().plus(7, java.time.temporal.ChronoUnit.DAYS);
+        this.status = SessionStatus.ACTIVE;
+    }
+
+    public void refresh(String newAccessToken, Instant newExpiresAt) {
+        this.accessToken = newAccessToken;
+        this.expiresAt = newExpiresAt;
+    }
+
+    public void close() { this.status = SessionStatus.CLOSED; }
+    public void expire() { this.status = SessionStatus.EXPIRED; }
 }
