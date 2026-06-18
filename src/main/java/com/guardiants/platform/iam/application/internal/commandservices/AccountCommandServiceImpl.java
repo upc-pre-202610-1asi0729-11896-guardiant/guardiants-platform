@@ -7,7 +7,9 @@ import com.guardiants.platform.iam.application.internal.outboundservices.events.
 import com.guardiants.platform.iam.domain.model.aggregates.Account;
 import com.guardiants.platform.iam.domain.model.aggregates.User;
 import com.guardiants.platform.iam.domain.model.commands.RegisterAccountCommand;
+import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
 import com.guardiants.platform.iam.domain.model.events.AccountRegisteredEvent;
+import com.guardiants.platform.iam.domain.model.events.EmailVerifiedEvent;
 import com.guardiants.platform.iam.domain.repositories.AccountRepository;
 import com.guardiants.platform.iam.domain.repositories.UserRepository;
 import com.guardiants.platform.shared.application.result.Result;
@@ -64,4 +66,23 @@ public class AccountCommandServiceImpl implements AccountCommandService {
 
         return Result.success(savedAccount);
     }
+
+    @Override
+    public Result<Account, AccountCommandFailure> handle(VerifyEmailCommand command) {
+        return accountRepository.findById(command.accountId())
+                .map(account -> {
+                    try {
+                        account.verifyEmail(command.verificationToken());
+                        var saved = accountRepository.save(account);
+                        iamEventPublisher.publishEmailVerified(
+                                new EmailVerifiedEvent(saved.getId(), saved.getEmail()));
+                        return Result.<Account, AccountCommandFailure>success(saved);
+                    } catch (IllegalArgumentException e) {
+                        return Result.<Account, AccountCommandFailure>failure(
+                                new AccountCommandFailure.InvalidVerificationToken());
+                    }
+                })
+                .orElse(Result.failure(new AccountCommandFailure.InvalidVerificationToken()));
+    }
+
 }
