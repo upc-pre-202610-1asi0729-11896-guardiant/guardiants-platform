@@ -2,8 +2,10 @@ package com.guardiants.platform.iam.interfaces.rest;
 
 import com.guardiants.platform.iam.application.commandservices.AccountCommandService;
 import com.guardiants.platform.iam.application.commandservices.SessionCommandService;
+import com.guardiants.platform.iam.domain.model.commands.RefreshSessionCommand;
 import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
 import com.guardiants.platform.iam.interfaces.rest.resources.LoginResource;
+import com.guardiants.platform.iam.interfaces.rest.resources.RefreshSessionResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.RegisterAccountResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.VerifyEmailResource;
 import com.guardiants.platform.iam.interfaces.rest.transform.RegisterAccountCommandFromResourceAssembler;
@@ -66,5 +68,16 @@ public class AuthenticationController {
         return ResponseEntityFromSessionCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
+
+    @Operation(summary = "Refresh session", description = "Issues a new access token using a valid refresh token.")
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshSession(@Valid @RequestBody RefreshSessionResource resource) {
+        log.debug("POST /api/v1/iam/auth/refresh");
+        var command = new RefreshSessionCommand(resource.refreshToken());
+        var result = sessionCommandService.handle(command);
+        return ResponseEntityFromSessionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
 
 }
