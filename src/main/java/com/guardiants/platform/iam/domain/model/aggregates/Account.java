@@ -51,4 +51,14 @@ public class Account extends AbstractDomainAggregateRoot<Account> {
         return profileType == ProfileType.COMPANY
                 || profileType == ProfileType.GOVERNMENT;
     }
+
+    public void verifyEmail(String token) {
+        if (token == null || !token.equals(this.verificationToken)) {
+            throw new IllegalArgumentException("iam.error.invalidCredentials");
+        }
+        this.emailVerified = true;
+        this.verificationToken = null;
+    }
+
+    public boolean isVerified() { return emailVerified; }
 }
