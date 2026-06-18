@@ -5,6 +5,7 @@ import com.guardiants.platform.iam.application.commandservices.SessionCommandFai
 import com.guardiants.platform.iam.application.commandservices.SessionCommandService;
 import com.guardiants.platform.iam.domain.model.aggregates.Session;
 import com.guardiants.platform.iam.domain.model.commands.LoginCommand;
+import com.guardiants.platform.iam.domain.model.commands.RefreshSessionCommand;
 import com.guardiants.platform.iam.domain.repositories.AccountRepository;
 import com.guardiants.platform.iam.domain.repositories.SessionRepository;
 import com.guardiants.platform.iam.domain.repositories.UserRepository;
@@ -62,5 +63,27 @@ public class SessionCommandServiceImpl implements SessionCommandService {
         var session = new Session(command, accessToken, refreshToken);
         session.setUserId(user.get().getId());
         return Result.success(sessionRepository.save(session));
+    }
+
+    @Override
+    public Result<Session, SessionCommandFailure> handle(RefreshSessionCommand command) {
+        return sessionRepository.findByRefreshToken(command.refreshToken())
+                .map(session -> {
+                    if (!session.isActive() || session.isExpired()) {
+                        return Result.<Session, SessionCommandFailure>failure(
+                                new SessionCommandFailure.SessionExpired());
+                    }
+                    var account = accountRepository.findById(session.getUserId()).orElse(null);
+                    if (account == null) {
+                        return Result.<Session, SessionCommandFailure>failure(
+                                new SessionCommandFailure.InvalidCredentials());
+                    }
+                    String newAccessToken = tokenService.generateToken(account.getEmail());
+                    session.refresh(newAccessToken,
+                            java.time.Instant.now().plus(7, java.time.temporal.ChronoUnit.DAYS));
+                    return Result.<Session, SessionCommandFailure>success(
+                            sessionRepository.save(session));
+                })
+                .orElse(Result.failure(new SessionCommandFailure.SessionExpired()));
     }
 }
