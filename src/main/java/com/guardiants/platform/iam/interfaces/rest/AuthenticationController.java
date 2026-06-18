@@ -1,7 +1,9 @@
 package com.guardiants.platform.iam.interfaces.rest;
 
 import com.guardiants.platform.iam.application.commandservices.AccountCommandService;
+import com.guardiants.platform.iam.application.commandservices.SessionCommandService;
 import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
+import com.guardiants.platform.iam.interfaces.rest.resources.LoginResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.RegisterAccountResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.VerifyEmailResource;
 import com.guardiants.platform.iam.interfaces.rest.transform.RegisterAccountCommandFromResourceAssembler;
@@ -26,7 +28,8 @@ public class AuthenticationController {
     private final MessageSource messageSource;
 
     public AuthenticationController(AccountCommandService accountCommandService,
-                                    MessageSource messageSource) {
+                                    MessageSource messageSource,
+                                    SessionCommandService sessionCommandService) {
         this.accountCommandService = accountCommandService;
         this.messageSource = messageSource;
     }
@@ -51,6 +54,16 @@ public class AuthenticationController {
         var command = new VerifyEmailCommand(resource.accountId(), resource.verificationToken());
         var result = accountCommandService.handle(command);
         return ResponseEntityFromAccountCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Login", description = "Authenticates with email and password, returns JWT session.")
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginResource resource) {
+        log.debug("POST /api/v1/iam/auth/login - email={}", resource.email());
+        var command = LoginCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = sessionCommandService.handle(command);
+        return ResponseEntityFromSessionCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
 
