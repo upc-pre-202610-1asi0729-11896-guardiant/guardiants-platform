@@ -29,6 +29,7 @@ public class SecurityConfiguration {
         this.userDetailsService = userDetailsService;
     }
 
+
     @Bean
     public BearerTokenAuthenticationTokenFilter bearerTokenAuthenticationTokenFilter() {
         return new BearerTokenAuthenticationTokenFilter(tokenService, userDetailsService);
