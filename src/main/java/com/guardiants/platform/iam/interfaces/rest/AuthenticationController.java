@@ -1,7 +1,9 @@
 package com.guardiants.platform.iam.interfaces.rest;
 
 import com.guardiants.platform.iam.application.commandservices.AccountCommandService;
+import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
 import com.guardiants.platform.iam.interfaces.rest.resources.RegisterAccountResource;
+import com.guardiants.platform.iam.interfaces.rest.resources.VerifyEmailResource;
 import com.guardiants.platform.iam.interfaces.rest.transform.RegisterAccountCommandFromResourceAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromAccountCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,4 +43,15 @@ public class AuthenticationController {
         return ResponseEntityFromAccountCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
+
+    @Operation(summary = "Verify email", description = "Confirms the email address using the token sent to the user.")
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailResource resource) {
+        log.debug("POST /api/v1/iam/auth/verify-email - accountId={}", resource.accountId());
+        var command = new VerifyEmailCommand(resource.accountId(), resource.verificationToken());
+        var result = accountCommandService.handle(command);
+        return ResponseEntityFromAccountCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
 }
