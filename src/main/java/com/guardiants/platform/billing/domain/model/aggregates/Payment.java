@@ -1,5 +1,6 @@
 package com.guardiants.platform.billing.domain.model.aggregates;
 
+import com.guardiants.platform.billing.domain.model.commands.ProcessPaymentCommand;
 import com.guardiants.platform.billing.domain.model.valueobjects.PaymentStatus;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
@@ -32,6 +33,18 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     private String failureReason;
 
     private Instant processedAt;
+
+    public Payment(ProcessPaymentCommand command) {
+        this.subscriptionId = command.subscriptionId();
+        this.amountUsd = command.amountUsd();
+        this.currency = command.currency();
+        this.status = PaymentStatus.PENDING;
+        this.processedAt = Instant.now();
+    }
+
+    public void setStripePaymentIntentId(String stripePaymentIntentId) {
+        this.stripePaymentIntentId = stripePaymentIntentId;
+    }
 
     public static Payment reconstitute(Long id, Long subscriptionId, String stripePaymentIntentId,
                                         double amountUsd, String currency, PaymentStatus status,
