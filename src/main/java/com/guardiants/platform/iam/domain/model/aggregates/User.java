@@ -49,4 +49,9 @@ public class User extends AbstractDomainAggregateRoot<User> {
     public String displayName() {
         return name.isBlank() ? email : name;
     }
+
+    public void updateProfile(String name, String email) {
+        if (name != null && !name.isBlank()) this.name = name;
+        if (email != null && !email.isBlank()) this.email = email;
+    }
 }
