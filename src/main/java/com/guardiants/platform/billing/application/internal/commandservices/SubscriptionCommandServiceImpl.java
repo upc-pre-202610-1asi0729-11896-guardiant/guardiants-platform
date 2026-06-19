@@ -7,9 +7,13 @@ import com.guardiants.platform.billing.application.internal.outboundservices.str
 import com.guardiants.platform.billing.domain.model.aggregates.Subscription;
 import com.guardiants.platform.billing.domain.model.commands.ActivateSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SelectPlanCommand;
+import com.guardiants.platform.billing.domain.model.commands.CancelSubscriptionCommand;
+import com.guardiants.platform.billing.domain.model.commands.ExpireSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.RenewSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
+import com.guardiants.platform.billing.domain.model.commands.UpdatePlanCommand;
 import com.guardiants.platform.billing.domain.model.events.SubscriptionActivatedEvent;
+import com.guardiants.platform.billing.domain.model.events.SubscriptionExpiredEvent;
 import com.guardiants.platform.billing.domain.model.events.SubscriptionSuspendedEvent;
 import com.guardiants.platform.billing.domain.repositories.PlanRepository;
 import com.guardiants.platform.billing.domain.repositories.SubscriptionRepository;
@@ -93,6 +97,47 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
                     sub.renew(command.newPeriodEnd());
                     return Result.<Subscription, SubscriptionCommandFailure>success(
                             subscriptionRepository.save(sub));
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(UpdatePlanCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    if (planRepository.findById(command.newPlanId()).isEmpty())
+                        return Result.<Subscription, SubscriptionCommandFailure>failure(
+                                new SubscriptionCommandFailure.PlanNotFound());
+                    sub.updatePlan(command.newPlanId());
+                    return Result.<Subscription, SubscriptionCommandFailure>success(
+                            subscriptionRepository.save(sub));
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(CancelSubscriptionCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    sub.cancel();
+                    stripeGatewayPort.cancelSubscription(
+                            sub.getStripeSubscriptionId() != null
+                                    ? sub.getStripeSubscriptionId() : "");
+                    return Result.<Subscription, SubscriptionCommandFailure>success(
+                            subscriptionRepository.save(sub));
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(ExpireSubscriptionCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    sub.expire();
+                    var saved = subscriptionRepository.save(sub);
+                    subscriptionEventPublisher.publishSubscriptionExpired(
+                            new SubscriptionExpiredEvent(saved.getId(), saved.getOwnerId()));
+                    return Result.<Subscription, SubscriptionCommandFailure>success(saved);
                 })
                 .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
     }
