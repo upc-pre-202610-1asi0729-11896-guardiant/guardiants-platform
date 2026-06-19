@@ -54,4 +54,10 @@ public class User extends AbstractDomainAggregateRoot<User> {
         if (name != null && !name.isBlank()) this.name = name;
         if (email != null && !email.isBlank()) this.email = email;
     }
+
+    public void updatePreferences(LanguageValue language, ThemeValue theme) {
+        this.preferences = new UserPreferences(
+                language != null ? language : this.preferences.getLanguage(),
+                theme != null ? theme : this.preferences.getTheme());
+    }
 }
