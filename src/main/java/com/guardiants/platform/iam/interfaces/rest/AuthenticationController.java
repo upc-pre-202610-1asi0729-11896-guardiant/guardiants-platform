@@ -2,12 +2,10 @@ package com.guardiants.platform.iam.interfaces.rest;
 
 import com.guardiants.platform.iam.application.commandservices.AccountCommandService;
 import com.guardiants.platform.iam.application.commandservices.SessionCommandService;
+import com.guardiants.platform.iam.domain.model.commands.LogoutCommand;
 import com.guardiants.platform.iam.domain.model.commands.RefreshSessionCommand;
 import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
-import com.guardiants.platform.iam.interfaces.rest.resources.LoginResource;
-import com.guardiants.platform.iam.interfaces.rest.resources.RefreshSessionResource;
-import com.guardiants.platform.iam.interfaces.rest.resources.RegisterAccountResource;
-import com.guardiants.platform.iam.interfaces.rest.resources.VerifyEmailResource;
+import com.guardiants.platform.iam.interfaces.rest.resources.*;
 import com.guardiants.platform.iam.interfaces.rest.transform.RegisterAccountCommandFromResourceAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromAccountCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,6 +72,16 @@ public class AuthenticationController {
     public ResponseEntity<?> refreshSession(@Valid @RequestBody RefreshSessionResource resource) {
         log.debug("POST /api/v1/iam/auth/refresh");
         var command = new RefreshSessionCommand(resource.refreshToken());
+        var result = sessionCommandService.handle(command);
+        return ResponseEntityFromSessionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Logout", description = "Closes the session and invalidates the JWT.")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@Valid @RequestBody LogoutResource resource) {
+        log.debug("POST /api/v1/iam/auth/logout - sessionId={}", resource.sessionId());
+        var command = new LogoutCommand(resource.sessionId());
         var result = sessionCommandService.handle(command);
         return ResponseEntityFromSessionCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
