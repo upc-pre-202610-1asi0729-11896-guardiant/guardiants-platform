@@ -7,7 +7,9 @@ import com.guardiants.platform.billing.application.internal.outboundservices.str
 import com.guardiants.platform.billing.domain.model.aggregates.Subscription;
 import com.guardiants.platform.billing.domain.model.commands.ActivateSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SelectPlanCommand;
+import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.events.SubscriptionActivatedEvent;
+import com.guardiants.platform.billing.domain.model.events.SubscriptionSuspendedEvent;
 import com.guardiants.platform.billing.domain.repositories.PlanRepository;
 import com.guardiants.platform.billing.domain.repositories.SubscriptionRepository;
 import com.guardiants.platform.shared.application.result.Result;
@@ -59,6 +61,25 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
                             new SubscriptionActivatedEvent(saved.getId(),
                                     saved.getOwnerId(), saved.getPlanId()));
                     return Result.<Subscription, SubscriptionCommandFailure>success(saved);
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(
+            SuspendSubscriptionCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    try {
+                        sub.suspend();
+                        var saved = subscriptionRepository.save(sub);
+                        subscriptionEventPublisher.publishSubscriptionSuspended(
+                                new SubscriptionSuspendedEvent(saved.getId(), saved.getOwnerId()));
+                        return Result.<Subscription, SubscriptionCommandFailure>success(saved);
+                    } catch (IllegalStateException e) {
+                        return Result.<Subscription, SubscriptionCommandFailure>failure(
+                                new SubscriptionCommandFailure.InvalidStatusTransition());
+                    }
                 })
                 .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
     }
