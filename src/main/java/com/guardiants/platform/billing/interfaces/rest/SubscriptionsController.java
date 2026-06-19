@@ -1,8 +1,13 @@
 package com.guardiants.platform.billing.interfaces.rest;
 
 import com.guardiants.platform.billing.application.commandservices.SubscriptionCommandService;
+import com.guardiants.platform.billing.application.internal.outboundservices.stripe.StripeGatewayPort;
+import com.guardiants.platform.billing.application.queryservices.PlanQueryService;
 import com.guardiants.platform.billing.application.queryservices.SubscriptionQueryService;
 import com.guardiants.platform.billing.domain.model.queries.GetCurrentSubscriptionQuery;
+import com.guardiants.platform.billing.domain.model.queries.GetPlanByIdQuery;
+import com.guardiants.platform.billing.domain.model.queries.GetSubscriptionByIdQuery;
+import com.guardiants.platform.billing.interfaces.rest.resources.CheckoutSessionResource;
 import com.guardiants.platform.billing.interfaces.rest.resources.SelectPlanResource;
 import com.guardiants.platform.billing.interfaces.rest.transform.ResponseEntityFromBillingQueryResultAssembler;
 import com.guardiants.platform.billing.interfaces.rest.transform.SelectPlanCommandFromResourceAssembler;
@@ -25,13 +30,19 @@ public class SubscriptionsController {
 
     private final SubscriptionCommandService subscriptionCommandService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final PlanQueryService planQueryService;
+    private final StripeGatewayPort stripeGatewayPort;
     private final MessageSource messageSource;
 
     public SubscriptionsController(SubscriptionCommandService subscriptionCommandService,
                                    SubscriptionQueryService subscriptionQueryService,
+                                   PlanQueryService planQueryService,
+                                   StripeGatewayPort stripeGatewayPort,
                                    MessageSource messageSource) {
         this.subscriptionCommandService = subscriptionCommandService;
         this.subscriptionQueryService = subscriptionQueryService;
+        this.planQueryService = planQueryService;
+        this.stripeGatewayPort = stripeGatewayPort;
         this.messageSource = messageSource;
     }
 
@@ -52,5 +63,23 @@ public class SubscriptionsController {
         log.debug("GET /api/v1/billing/subscriptions/current?ownerId={}", ownerId);
         var sub = subscriptionQueryService.handle(new GetCurrentSubscriptionQuery(ownerId));
         return ResponseEntityFromBillingQueryResultAssembler.toResponseEntityFromSubscription(sub);
+    }
+
+    @Operation(summary = "Create Stripe checkout session",
+            description = "Returns a Stripe checkout URL to complete payment for a pending subscription.")
+    @PostMapping("/{subscriptionId}/checkout")
+    public ResponseEntity<?> createStripeCheckoutSession(@PathVariable Long subscriptionId) {
+        log.debug("POST /api/v1/billing/subscriptions/{}/checkout", subscriptionId);
+        return subscriptionQueryService.handle(new GetSubscriptionByIdQuery(subscriptionId))
+                .map(sub -> planQueryService.handle(new GetPlanByIdQuery(sub.getPlanId()))
+                        .map(plan -> {
+                            String url = stripeGatewayPort.createCheckoutSession(
+                                    sub.getId(), plan.getPriceUsd(),
+                                    sub.getStripeCustomerId() != null
+                                            ? sub.getStripeCustomerId() : "");
+                            return (ResponseEntity<?>) ResponseEntity.ok(new CheckoutSessionResource(url));
+                        })
+                        .orElse(ResponseEntity.notFound().build()))
+                .orElse(ResponseEntity.notFound().build());
     }
 }
