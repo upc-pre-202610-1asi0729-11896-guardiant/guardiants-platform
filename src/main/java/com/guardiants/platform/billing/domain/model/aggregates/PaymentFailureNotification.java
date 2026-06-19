@@ -1,5 +1,6 @@
 package com.guardiants.platform.billing.domain.model.aggregates;
 
+import com.guardiants.platform.billing.domain.model.commands.NotifyPaymentFailureCommand;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -26,6 +27,14 @@ public class PaymentFailureNotification extends AbstractDomainAggregateRoot<Paym
 
     @Column(nullable = false)
     private boolean acknowledged = false;
+
+    public PaymentFailureNotification(NotifyPaymentFailureCommand command) {
+        this.subscriptionId = command.subscriptionId();
+        this.paymentId = command.paymentId();
+        this.ownerId = command.ownerId();
+        this.sentAt = Instant.now();
+        this.acknowledged = false;
+    }
 
     public static PaymentFailureNotification reconstitute(Long id, Long subscriptionId,
                                                            Long paymentId, Long ownerId,
