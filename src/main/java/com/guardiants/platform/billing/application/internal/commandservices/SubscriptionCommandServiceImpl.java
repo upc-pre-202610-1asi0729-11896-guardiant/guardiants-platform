@@ -5,7 +5,9 @@ import com.guardiants.platform.billing.application.commandservices.SubscriptionC
 import com.guardiants.platform.billing.application.internal.outboundservices.events.SubscriptionEventPublisher;
 import com.guardiants.platform.billing.application.internal.outboundservices.stripe.StripeGatewayPort;
 import com.guardiants.platform.billing.domain.model.aggregates.Subscription;
+import com.guardiants.platform.billing.domain.model.commands.ActivateSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SelectPlanCommand;
+import com.guardiants.platform.billing.domain.model.events.SubscriptionActivatedEvent;
 import com.guardiants.platform.billing.domain.repositories.PlanRepository;
 import com.guardiants.platform.billing.domain.repositories.SubscriptionRepository;
 import com.guardiants.platform.shared.application.result.Result;
@@ -43,5 +45,21 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         }
         var subscription = new Subscription(command);
         return Result.success(subscriptionRepository.save(subscription));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(
+            ActivateSubscriptionCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    sub.activate(command.stripeSubscriptionId(),
+                            command.periodStart(), command.periodEnd());
+                    var saved = subscriptionRepository.save(sub);
+                    subscriptionEventPublisher.publishSubscriptionActivated(
+                            new SubscriptionActivatedEvent(saved.getId(),
+                                    saved.getOwnerId(), saved.getPlanId()));
+                    return Result.<Subscription, SubscriptionCommandFailure>success(saved);
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
     }
 }
