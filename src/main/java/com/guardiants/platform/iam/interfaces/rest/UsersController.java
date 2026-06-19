@@ -4,11 +4,9 @@ import com.guardiants.platform.iam.application.commandservices.UserCommandServic
 import com.guardiants.platform.iam.application.queryservices.UserQueryService;
 import com.guardiants.platform.iam.domain.model.queries.GetUserByIdQuery;
 import com.guardiants.platform.iam.interfaces.rest.resources.PasswordChangeResource;
+import com.guardiants.platform.iam.interfaces.rest.resources.PreferencesUpdateResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.ProfileUpdateResource;
-import com.guardiants.platform.iam.interfaces.rest.transform.ChangePasswordCommandFromResourceAssembler;
-import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromUserCommandResultAssembler;
-import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromUserQueryResultAssembler;
-import com.guardiants.platform.iam.interfaces.rest.transform.UpdateProfileCommandFromResourceAssembler;
+import com.guardiants.platform.iam.interfaces.rest.transform.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -67,6 +65,18 @@ public class UsersController {
                                             @Valid @RequestBody PasswordChangeResource resource) {
         log.debug("PATCH /api/v1/iam/users/{}/password", userId);
         var command = ChangePasswordCommandFromResourceAssembler
+                .toCommandFromResource(userId, resource);
+        var result = userCommandService.handle(command);
+        return ResponseEntityFromUserCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Update preferences", description = "Updates the user language and theme preferences.")
+    @PatchMapping("/{userId}/preferences")
+    public ResponseEntity<?> updatePreferences(@PathVariable Long userId,
+                                               @Valid @RequestBody PreferencesUpdateResource resource) {
+        log.debug("PATCH /api/v1/iam/users/{}/preferences", userId);
+        var command = UpdatePreferencesCommandFromResourceAssembler
                 .toCommandFromResource(userId, resource);
         var result = userCommandService.handle(command);
         return ResponseEntityFromUserCommandResultAssembler
