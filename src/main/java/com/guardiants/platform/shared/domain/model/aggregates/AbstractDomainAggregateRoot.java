@@ -1,5 +1,9 @@
 package com.guardiants.platform.shared.domain.model.aggregates;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.AbstractAggregateRoot;
 
@@ -17,8 +21,23 @@ import java.util.Collection;
  * @param <T> the concrete aggregate root type
  */
 @NullMarked
+@MappedSuperclass
 public abstract class AbstractDomainAggregateRoot<T extends AbstractDomainAggregateRoot<T>>
         extends AbstractAggregateRoot<T> {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    public Long getId() { return id; }
+
+    /**
+     * Sets the id. Used by assemblers when reconstructing a domain aggregate
+     * from a persistence entity that already carries an identity.
+     *
+     * @param id the identity to assign
+     */
+    public void setId(Long id) { this.id = id; }
 
     /**
      * Registers a domain event to be published after this aggregate is saved.
