@@ -61,4 +61,8 @@ public class Account extends AbstractDomainAggregateRoot<Account> {
     }
 
     public boolean isVerified() { return emailVerified; }
+
+    public void updatePasswordHash(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+    }
 }
