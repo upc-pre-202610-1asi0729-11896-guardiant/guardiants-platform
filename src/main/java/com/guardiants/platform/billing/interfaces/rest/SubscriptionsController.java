@@ -2,7 +2,11 @@ package com.guardiants.platform.billing.interfaces.rest;
 
 import com.guardiants.platform.billing.application.commandservices.SubscriptionCommandService;
 import com.guardiants.platform.billing.application.internal.outboundservices.stripe.StripeGatewayPort;
+import com.guardiants.platform.billing.domain.model.commands.RenewSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import com.guardiants.platform.billing.application.queryservices.PlanQueryService;
 import com.guardiants.platform.billing.application.queryservices.SubscriptionQueryService;
 import com.guardiants.platform.billing.domain.model.queries.GetCurrentSubscriptionQuery;
@@ -64,6 +68,16 @@ public class SubscriptionsController {
         log.debug("GET /api/v1/billing/subscriptions/current?ownerId={}", ownerId);
         var sub = subscriptionQueryService.handle(new GetCurrentSubscriptionQuery(ownerId));
         return ResponseEntityFromBillingQueryResultAssembler.toResponseEntityFromSubscription(sub);
+    }
+
+    @Operation(summary = "Renew subscription")
+    @PatchMapping("/{subscriptionId}/renew")
+    public ResponseEntity<?> renewSubscription(@PathVariable Long subscriptionId) {
+        var newPeriodEnd = Instant.now().plus(30, ChronoUnit.DAYS);
+        var result = subscriptionCommandService.handle(
+                new RenewSubscriptionCommand(subscriptionId, newPeriodEnd));
+        return ResponseEntityFromSubscriptionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
     }
 
     @Operation(summary = "Suspend subscription")
