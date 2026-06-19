@@ -2,7 +2,11 @@ package com.guardiants.platform.iam.infrastructure.persistence.jpa.entities;
 
 import com.guardiants.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
 public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
@@ -25,5 +29,4 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Column(length = 10)
     private String theme = "LIGHT";
 
-    // getters + setters
 }
