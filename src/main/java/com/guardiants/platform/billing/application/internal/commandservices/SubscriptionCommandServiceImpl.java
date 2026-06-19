@@ -7,6 +7,7 @@ import com.guardiants.platform.billing.application.internal.outboundservices.str
 import com.guardiants.platform.billing.domain.model.aggregates.Subscription;
 import com.guardiants.platform.billing.domain.model.commands.ActivateSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SelectPlanCommand;
+import com.guardiants.platform.billing.domain.model.commands.RenewSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.events.SubscriptionActivatedEvent;
 import com.guardiants.platform.billing.domain.model.events.SubscriptionSuspendedEvent;
@@ -80,6 +81,18 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
                         return Result.<Subscription, SubscriptionCommandFailure>failure(
                                 new SubscriptionCommandFailure.InvalidStatusTransition());
                     }
+                })
+                .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
+    }
+
+    @Override
+    public Result<Subscription, SubscriptionCommandFailure> handle(
+            RenewSubscriptionCommand command) {
+        return subscriptionRepository.findById(command.subscriptionId())
+                .map(sub -> {
+                    sub.renew(command.newPeriodEnd());
+                    return Result.<Subscription, SubscriptionCommandFailure>success(
+                            subscriptionRepository.save(sub));
                 })
                 .orElse(Result.failure(new SubscriptionCommandFailure.NotFound()));
     }
