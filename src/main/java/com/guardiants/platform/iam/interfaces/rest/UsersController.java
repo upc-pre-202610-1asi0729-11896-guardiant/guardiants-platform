@@ -3,7 +3,9 @@ package com.guardiants.platform.iam.interfaces.rest;
 import com.guardiants.platform.iam.application.commandservices.UserCommandService;
 import com.guardiants.platform.iam.application.queryservices.UserQueryService;
 import com.guardiants.platform.iam.domain.model.queries.GetUserByIdQuery;
+import com.guardiants.platform.iam.interfaces.rest.resources.PasswordChangeResource;
 import com.guardiants.platform.iam.interfaces.rest.resources.ProfileUpdateResource;
+import com.guardiants.platform.iam.interfaces.rest.transform.ChangePasswordCommandFromResourceAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromUserCommandResultAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromUserQueryResultAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.UpdateProfileCommandFromResourceAssembler;
@@ -25,12 +27,14 @@ public class UsersController {
 
     private final UserQueryService userQueryService;
     private final MessageSource messageSource;
+    private final UserCommandService userCommandService;
 
     public UsersController(UserQueryService userQueryService,
                            MessageSource messageSource,
-                           UserCommandService userCommandService) {
+                           UserCommandService userCommandService, UserCommandService userCommandService1) {
         this.userQueryService = userQueryService;
         this.messageSource = messageSource;
+        this.userCommandService = userCommandService;
     }
 
     @Operation(summary = "Get current user", description = "Returns the authenticated user profile.")
@@ -51,6 +55,18 @@ public class UsersController {
                                            @Valid @RequestBody ProfileUpdateResource resource) {
         log.debug("PUT /api/v1/iam/users/{}/profile", userId);
         var command = UpdateProfileCommandFromResourceAssembler
+                .toCommandFromResource(userId, resource);
+        var result = userCommandService.handle(command);
+        return ResponseEntityFromUserCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Change password", description = "Changes the user password after verifying the current one.")
+    @PatchMapping("/{userId}/password")
+    public ResponseEntity<?> changePassword(@PathVariable Long userId,
+                                            @Valid @RequestBody PasswordChangeResource resource) {
+        log.debug("PATCH /api/v1/iam/users/{}/password", userId);
+        var command = ChangePasswordCommandFromResourceAssembler
                 .toCommandFromResource(userId, resource);
         var result = userCommandService.handle(command);
         return ResponseEntityFromUserCommandResultAssembler
