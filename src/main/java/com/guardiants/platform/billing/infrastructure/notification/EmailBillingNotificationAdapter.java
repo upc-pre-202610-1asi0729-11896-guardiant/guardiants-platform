@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class EmailBillingNotificationAdapter implements BillingNotificationPort {{
+public class EmailBillingNotificationAdapter implements BillingNotificationPort {
     @Override
     public void sendPaymentFailureEmail(Long ownerId, Long subscriptionId, String failureReason) {
         log.warn("BILLING EMAIL — ownerId={} sub={} reason={}", ownerId, subscriptionId, failureReason);

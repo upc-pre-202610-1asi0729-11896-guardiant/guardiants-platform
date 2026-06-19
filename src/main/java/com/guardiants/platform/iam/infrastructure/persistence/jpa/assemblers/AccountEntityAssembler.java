@@ -27,7 +27,7 @@ public class AccountEntityAssembler {
         var account = new Account(command, entity.getPasswordHash(),
                 entity.getVerificationToken());
         account.setId(entity.getId());
-        if (entity.isEmailVerified()) account.verifyEmail(entity.getVerificationToken());
+        if (entity.isEmailVerified()) account.markEmailVerified();
         return account;
     }
 }
