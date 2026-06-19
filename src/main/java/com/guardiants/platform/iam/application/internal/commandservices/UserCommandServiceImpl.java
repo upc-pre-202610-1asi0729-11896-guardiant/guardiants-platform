@@ -4,6 +4,7 @@ import com.guardiants.platform.iam.application.commandservices.UserCommandFailur
 import com.guardiants.platform.iam.application.commandservices.UserCommandService;
 import com.guardiants.platform.iam.domain.model.aggregates.User;
 import com.guardiants.platform.iam.domain.model.commands.ChangePasswordCommand;
+import com.guardiants.platform.iam.domain.model.commands.UpdatePreferencesCommand;
 import com.guardiants.platform.iam.domain.model.commands.UpdateProfileCommand;
 import com.guardiants.platform.iam.domain.repositories.AccountRepository;
 import com.guardiants.platform.iam.domain.repositories.UserRepository;
@@ -61,4 +62,16 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         return Result.success(userOpt.get());
     }
+
+    @Override
+    public Result<User, UserCommandFailure> handle(UpdatePreferencesCommand command) {
+        return userRepository.findById(command.userId())
+                .map(user -> {
+                    user.updatePreferences(command.language(), command.theme());
+                    return Result.<User, UserCommandFailure>success(
+                            userRepository.save(user));
+                })
+                .orElse(Result.failure(new UserCommandFailure.PasswordMismatch()));
+    }
+
 }
