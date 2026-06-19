@@ -2,6 +2,7 @@ package com.guardiants.platform.billing.interfaces.rest;
 
 import com.guardiants.platform.billing.application.commandservices.SubscriptionCommandService;
 import com.guardiants.platform.billing.application.internal.outboundservices.stripe.StripeGatewayPort;
+import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
 import com.guardiants.platform.billing.application.queryservices.PlanQueryService;
 import com.guardiants.platform.billing.application.queryservices.SubscriptionQueryService;
 import com.guardiants.platform.billing.domain.model.queries.GetCurrentSubscriptionQuery;
@@ -63,6 +64,14 @@ public class SubscriptionsController {
         log.debug("GET /api/v1/billing/subscriptions/current?ownerId={}", ownerId);
         var sub = subscriptionQueryService.handle(new GetCurrentSubscriptionQuery(ownerId));
         return ResponseEntityFromBillingQueryResultAssembler.toResponseEntityFromSubscription(sub);
+    }
+
+    @Operation(summary = "Suspend subscription")
+    @PatchMapping("/{subscriptionId}/suspend")
+    public ResponseEntity<?> suspendSubscription(@PathVariable Long subscriptionId) {
+        var result = subscriptionCommandService.handle(new SuspendSubscriptionCommand(subscriptionId));
+        return ResponseEntityFromSubscriptionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
     }
 
     @Operation(summary = "Create Stripe checkout session",
