@@ -2,8 +2,11 @@ package com.guardiants.platform.billing.interfaces.rest;
 
 import com.guardiants.platform.billing.application.commandservices.SubscriptionCommandService;
 import com.guardiants.platform.billing.application.internal.outboundservices.stripe.StripeGatewayPort;
+import com.guardiants.platform.billing.domain.model.commands.CancelSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.RenewSubscriptionCommand;
 import com.guardiants.platform.billing.domain.model.commands.SuspendSubscriptionCommand;
+import com.guardiants.platform.billing.domain.model.commands.UpdatePlanCommand;
+import com.guardiants.platform.billing.interfaces.rest.resources.UpdatePlanResource;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -68,6 +71,25 @@ public class SubscriptionsController {
         log.debug("GET /api/v1/billing/subscriptions/current?ownerId={}", ownerId);
         var sub = subscriptionQueryService.handle(new GetCurrentSubscriptionQuery(ownerId));
         return ResponseEntityFromBillingQueryResultAssembler.toResponseEntityFromSubscription(sub);
+    }
+
+    @Operation(summary = "Update subscription plan")
+    @PutMapping("/{subscriptionId}/plan")
+    public ResponseEntity<?> updatePlan(@PathVariable Long subscriptionId,
+                                        @Valid @RequestBody UpdatePlanResource resource) {
+        var result = subscriptionCommandService.handle(
+                new UpdatePlanCommand(subscriptionId, resource.newPlanId()));
+        return ResponseEntityFromSubscriptionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Cancel subscription")
+    @DeleteMapping("/{subscriptionId}")
+    public ResponseEntity<?> cancelSubscription(@PathVariable Long subscriptionId) {
+        var result = subscriptionCommandService.handle(
+                new CancelSubscriptionCommand(subscriptionId));
+        return ResponseEntityFromSubscriptionCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
     }
 
     @Operation(summary = "Renew subscription")
