@@ -9,10 +9,5 @@ import com.guardiants.platform.shared.application.result.Result;
 public interface SessionCommandService {
     Result<Session, SessionCommandFailure> handle(LoginCommand command);
     Result<Session, SessionCommandFailure> handle(RefreshSessionCommand command);
-
-    Result<Session, SessionCommandFailure> handle(RefreshSessionCommand command);
-
-    Result<Session, SessionCommandFailure> handle(LogoutCommand command);
-
     Result<Session, SessionCommandFailure> handle(LogoutCommand command);
 }

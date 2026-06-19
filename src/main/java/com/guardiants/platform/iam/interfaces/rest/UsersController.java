@@ -29,7 +29,7 @@ public class UsersController {
 
     public UsersController(UserQueryService userQueryService,
                            MessageSource messageSource,
-                           UserCommandService userCommandService, UserCommandService userCommandService1) {
+                           UserCommandService userCommandService) {
         this.userQueryService = userQueryService;
         this.messageSource = messageSource;
         this.userCommandService = userCommandService;

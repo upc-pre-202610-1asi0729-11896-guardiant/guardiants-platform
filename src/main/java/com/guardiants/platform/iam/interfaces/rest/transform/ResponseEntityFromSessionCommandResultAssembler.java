@@ -1,7 +1,7 @@
 package com.guardiants.platform.iam.interfaces.rest.transform;
 
-import com.guardiants.platform.iam.application.commandservices.UserCommandFailure;
-import com.guardiants.platform.iam.domain.model.aggregates.User;
+import com.guardiants.platform.iam.application.commandservices.SessionCommandFailure;
+import com.guardiants.platform.iam.domain.model.aggregates.Session;
 import com.guardiants.platform.shared.application.result.Result;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -9,17 +9,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
-public class ResponseEntityFromUserCommandResultAssembler {
+public class ResponseEntityFromSessionCommandResultAssembler {
 
     public static ResponseEntity<?> toResponseEntityFromResult(
-            Result<User, UserCommandFailure> result, MessageSource messageSource) {
+            Result<Session, SessionCommandFailure> result,
+            MessageSource messageSource) {
         return result.fold(
-                user -> ResponseEntity.ok(UserResourceFromEntityAssembler.toResourceFromEntity(user)),
+                session -> ResponseEntity.ok(
+                        SessionResourceFromEntityAssembler.toResourceFromEntity(session)),
                 failure -> {
                     var detail = messageSource.getMessage(failure.messageKey(), null,
                             failure.messageKey(), LocaleContextHolder.getLocale());
-                    return ResponseEntity.badRequest()
-                            .body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail));
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, detail));
                 });
     }
 }

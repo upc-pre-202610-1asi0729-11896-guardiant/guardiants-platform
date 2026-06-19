@@ -33,6 +33,21 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
 
     private Instant processedAt;
 
+    public static Payment reconstitute(Long id, Long subscriptionId, String stripePaymentIntentId,
+                                        double amountUsd, String currency, PaymentStatus status,
+                                        String failureReason, Instant processedAt) {
+        var payment = new Payment();
+        payment.setId(id);
+        payment.subscriptionId = subscriptionId;
+        payment.stripePaymentIntentId = stripePaymentIntentId;
+        payment.amountUsd = amountUsd;
+        payment.currency = currency;
+        payment.status = status;
+        payment.failureReason = failureReason;
+        payment.processedAt = processedAt;
+        return payment;
+    }
+
     public void markSucceeded()           { this.status = PaymentStatus.SUCCEEDED; }
     public void markFailed(String reason) { this.status = PaymentStatus.FAILED; this.failureReason = reason; }
     public boolean isSuccessful()         { return status == PaymentStatus.SUCCEEDED; }

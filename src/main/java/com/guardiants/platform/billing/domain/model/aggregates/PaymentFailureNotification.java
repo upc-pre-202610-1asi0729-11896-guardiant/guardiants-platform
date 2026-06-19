@@ -27,6 +27,19 @@ public class PaymentFailureNotification extends AbstractDomainAggregateRoot<Paym
     @Column(nullable = false)
     private boolean acknowledged = false;
 
+    public static PaymentFailureNotification reconstitute(Long id, Long subscriptionId,
+                                                           Long paymentId, Long ownerId,
+                                                           Instant sentAt, boolean acknowledged) {
+        var n = new PaymentFailureNotification();
+        n.setId(id);
+        n.subscriptionId = subscriptionId;
+        n.paymentId = paymentId;
+        n.ownerId = ownerId;
+        n.sentAt = sentAt;
+        n.acknowledged = acknowledged;
+        return n;
+    }
+
     public void acknowledge() { this.acknowledged = true; }
 
     public long daysUntilSuspension(int gracePeriodDays) {

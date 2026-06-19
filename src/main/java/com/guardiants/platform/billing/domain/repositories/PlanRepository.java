@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface PlanRepository {
     Optional<Plan> findById(Long id);
     List<Plan> findAll();
+    Plan save(Plan plan);
 }

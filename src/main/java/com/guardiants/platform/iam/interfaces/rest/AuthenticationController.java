@@ -6,8 +6,10 @@ import com.guardiants.platform.iam.domain.model.commands.LogoutCommand;
 import com.guardiants.platform.iam.domain.model.commands.RefreshSessionCommand;
 import com.guardiants.platform.iam.domain.model.commands.VerifyEmailCommand;
 import com.guardiants.platform.iam.interfaces.rest.resources.*;
+import com.guardiants.platform.iam.interfaces.rest.transform.LoginCommandFromResourceAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.RegisterAccountCommandFromResourceAssembler;
 import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromAccountCommandResultAssembler;
+import com.guardiants.platform.iam.interfaces.rest.transform.ResponseEntityFromSessionCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,12 +27,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class AuthenticationController {
 
     private final AccountCommandService accountCommandService;
+    private final SessionCommandService sessionCommandService;
     private final MessageSource messageSource;
 
     public AuthenticationController(AccountCommandService accountCommandService,
-                                    MessageSource messageSource,
-                                    SessionCommandService sessionCommandService) {
+                                    SessionCommandService sessionCommandService,
+                                    MessageSource messageSource) {
         this.accountCommandService = accountCommandService;
+        this.sessionCommandService = sessionCommandService;
         this.messageSource = messageSource;
     }
 

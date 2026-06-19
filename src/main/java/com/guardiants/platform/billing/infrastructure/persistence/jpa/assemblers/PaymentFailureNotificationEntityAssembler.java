@@ -1,7 +1,6 @@
 package com.guardiants.platform.billing.infrastructure.persistence.jpa.assemblers;
 
 import com.guardiants.platform.billing.domain.model.aggregates.PaymentFailureNotification;
-import com.guardiants.platform.billing.domain.model.commands.NotifyPaymentFailureCommand;
 import com.guardiants.platform.billing.infrastructure.persistence.jpa.entities.PaymentFailureNotificationPersistenceEntity;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +21,12 @@ public class PaymentFailureNotificationEntityAssembler {
 
     public PaymentFailureNotification toDomainFromPersistenceEntity(
             PaymentFailureNotificationPersistenceEntity entity) {
-        var notification = new PaymentFailureNotification(
-                new NotifyPaymentFailureCommand(
-                        entity.getSubscriptionId(), entity.getPaymentId(), entity.getOwnerId()));
-        notification.setId(entity.getId());
-        if (entity.isAcknowledged()) notification.acknowledge();
-        return notification;
+        return PaymentFailureNotification.reconstitute(
+                entity.getId(),
+                entity.getSubscriptionId(),
+                entity.getPaymentId(),
+                entity.getOwnerId(),
+                entity.getSentAt(),
+                entity.isAcknowledged());
     }
 }

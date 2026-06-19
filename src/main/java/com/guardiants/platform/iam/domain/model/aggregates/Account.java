@@ -47,6 +47,11 @@ public class Account extends AbstractDomainAggregateRoot<Account> {
         this.verificationToken = verificationToken;
     }
 
+    public void markEmailVerified() {
+        this.emailVerified = true;
+        this.verificationToken = null;
+    }
+
     public boolean isOrganization() {
         return profileType == ProfileType.COMPANY
                 || profileType == ProfileType.GOVERNMENT;

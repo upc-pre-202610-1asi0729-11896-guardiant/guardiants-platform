@@ -1,7 +1,6 @@
 package com.guardiants.platform.billing.infrastructure.persistence.jpa.assemblers;
 
 import com.guardiants.platform.billing.domain.model.aggregates.Payment;
-import com.guardiants.platform.billing.domain.model.commands.ProcessPaymentCommand;
 import com.guardiants.platform.billing.domain.model.valueobjects.PaymentStatus;
 import com.guardiants.platform.billing.infrastructure.persistence.jpa.entities.PaymentPersistenceEntity;
 import org.springframework.stereotype.Component;
@@ -16,21 +15,22 @@ public class PaymentEntityAssembler {
         entity.setStripePaymentIntentId(payment.getStripePaymentIntentId());
         entity.setAmountUsd(payment.getAmountUsd());
         entity.setCurrency(payment.getCurrency());
-        entity.setStatus(payment.getStatus().name());
+        entity.setStatus(payment.getStatus() != null ? payment.getStatus().name() : PaymentStatus.PENDING.name());
         entity.setFailureReason(payment.getFailureReason());
         entity.setProcessedAt(payment.getProcessedAt());
         return entity;
     }
 
     public Payment toDomainFromPersistenceEntity(PaymentPersistenceEntity entity) {
-        var payment = new Payment(new ProcessPaymentCommand(
-                entity.getSubscriptionId(), entity.getAmountUsd(),
-                entity.getCurrency() != null ? entity.getCurrency() : "USD"));
-        payment.setId(entity.getId());
-        payment.setStripePaymentIntentId(entity.getStripePaymentIntentId());
-        if (PaymentStatus.SUCCEEDED.name().equals(entity.getStatus())) payment.markSucceeded();
-        if (PaymentStatus.FAILED.name().equals(entity.getStatus()))
-            payment.markFailed(entity.getFailureReason());
+        var payment = Payment.reconstitute(
+                entity.getId(),
+                entity.getSubscriptionId(),
+                entity.getStripePaymentIntentId(),
+                entity.getAmountUsd(),
+                entity.getCurrency() != null ? entity.getCurrency() : "USD",
+                PaymentStatus.valueOf(entity.getStatus()),
+                entity.getFailureReason(),
+                entity.getProcessedAt());
         return payment;
     }
 }
