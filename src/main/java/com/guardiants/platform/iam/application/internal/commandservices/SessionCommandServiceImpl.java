@@ -1,10 +1,10 @@
 package com.guardiants.platform.iam.application.internal.commandservices;
 
-import com.guardiants.platform.iam.application.commandservices.AccountCommandFailure;
 import com.guardiants.platform.iam.application.commandservices.SessionCommandFailure;
 import com.guardiants.platform.iam.application.commandservices.SessionCommandService;
 import com.guardiants.platform.iam.domain.model.aggregates.Session;
 import com.guardiants.platform.iam.domain.model.commands.LoginCommand;
+import com.guardiants.platform.iam.domain.model.commands.LogoutCommand;
 import com.guardiants.platform.iam.domain.model.commands.RefreshSessionCommand;
 import com.guardiants.platform.iam.domain.repositories.AccountRepository;
 import com.guardiants.platform.iam.domain.repositories.SessionRepository;
@@ -81,6 +81,17 @@ public class SessionCommandServiceImpl implements SessionCommandService {
                     String newAccessToken = tokenService.generateToken(account.getEmail());
                     session.refresh(newAccessToken,
                             java.time.Instant.now().plus(7, java.time.temporal.ChronoUnit.DAYS));
+                    return Result.<Session, SessionCommandFailure>success(
+                            sessionRepository.save(session));
+                })
+                .orElse(Result.failure(new SessionCommandFailure.SessionExpired()));
+    }
+
+    @Override
+    public Result<Session, SessionCommandFailure> handle(LogoutCommand command) {
+        return sessionRepository.findById(command.sessionId())
+                .map(session -> {
+                    session.close();
                     return Result.<Session, SessionCommandFailure>success(
                             sessionRepository.save(session));
                 })
