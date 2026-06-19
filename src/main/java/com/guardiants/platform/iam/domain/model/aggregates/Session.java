@@ -37,6 +37,29 @@ public class Session extends AbstractDomainAggregateRoot<Session> {
     @Column(nullable = false, length = 10)
     private SessionStatus status = SessionStatus.ACTIVE;
 
+    /**
+     * Sets the userId after construction.
+     * Used by the LoginCommand handler once the User is resolved from the Account.
+     */
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    /**
+     * Reconstitution factory — used ONLY by persistence assemblers to rebuild
+     * a Session from a database row without going through the LoginCommand constructor.
+     */
+    public static Session reconstitute(Long id, Long userId, String accessToken,
+                                       String refreshToken, Instant issuedAt,
+                                       Instant expiresAt, SessionStatus status) {
+        var session = new Session();
+        session.setId(id);
+        session.userId = userId;
+        session.accessToken = accessToken;
+        session.refreshToken = refreshToken;
+        session.issuedAt = issuedAt;
+        session.expiresAt = expiresAt;
+        session.status = status;
+        return session;
+    }
     public boolean isActive() { return status == SessionStatus.ACTIVE; }
     public boolean isExpired() { return status == SessionStatus.EXPIRED
             || Instant.now().isAfter(expiresAt); }

@@ -46,6 +46,22 @@ public class User extends AbstractDomainAggregateRoot<User> {
         this.preferences = new UserPreferences();
     }
 
+    /**
+     * Reconstitution factory — used ONLY by persistence assemblers to rebuild
+     * a User from a database row without going through the Account constructor.
+     */
+    public static User reconstitute(Long id, Long accountId, String name, String email,
+                                    ProfileType profileType, UserPreferences preferences) {
+        var user = new User();
+        user.setId(id);
+        user.accountId = accountId;
+        user.name = name;
+        user.email = email;
+        user.profileType = profileType;
+        user.preferences = preferences;
+        return user;
+    }
+
     public String displayName() {
         return name.isBlank() ? email : name;
     }
