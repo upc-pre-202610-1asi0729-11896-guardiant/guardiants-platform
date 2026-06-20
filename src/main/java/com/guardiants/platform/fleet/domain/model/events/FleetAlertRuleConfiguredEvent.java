@@ -1,4 +1,5 @@
 package com.guardiants.platform.fleet.domain.model.events;
 
-public record FleetAlertRuleConfiguredEvent() {
-}
+import com.guardiants.platform.fleet.domain.model.valueobjects.AlertRuleType;
+
+public record FleetAlertRuleConfiguredEvent(Long ruleId, Long fleetId, AlertRuleType type) {}

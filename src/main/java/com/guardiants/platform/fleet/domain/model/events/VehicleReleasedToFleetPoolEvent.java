@@ -1,4 +1,3 @@
 package com.guardiants.platform.fleet.domain.model.events;
 
-public record VehicleReleasedToFleetPoolEvent() {
-}
+public record VehicleReleasedToFleetPoolEvent(Long loanId, Long vehicleId) {}

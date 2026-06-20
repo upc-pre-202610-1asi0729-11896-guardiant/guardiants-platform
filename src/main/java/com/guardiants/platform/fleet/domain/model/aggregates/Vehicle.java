@@ -1,5 +1,6 @@
 package com.guardiants.platform.fleet.domain.model.aggregates;
 
+import com.guardiants.platform.fleet.domain.model.commands.RegisterVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.valueobjects.VehicleStatus;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
@@ -30,6 +31,15 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
     private VehicleStatus status = VehicleStatus.ACTIVE;
+
+    public Vehicle(RegisterVehicleCommand command) {
+        this.fleetId = command.fleetId();
+        this.plate = command.plate();
+        this.model = command.model();
+        this.brand = command.brand();
+        this.year = command.year();
+        this.status = VehicleStatus.ACTIVE;
+    }
 
     /** Reconstruction constructor used by persistence assemblers. */
     public Vehicle(Long fleetId, String plate, String model, String brand,
