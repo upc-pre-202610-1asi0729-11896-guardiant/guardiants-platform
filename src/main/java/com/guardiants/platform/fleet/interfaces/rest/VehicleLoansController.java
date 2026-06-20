@@ -1,14 +1,19 @@
 package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.VehicleLoanCommandService;
+import com.guardiants.platform.fleet.application.queryservices.VehicleLoanQueryService;
 import com.guardiants.platform.fleet.domain.model.commands.ApproveVehicleLoanCommand;
 import com.guardiants.platform.fleet.domain.model.commands.ConfirmVehicleReturnCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RejectVehicleLoanCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RequestVehicleReturnCommand;
+import com.guardiants.platform.fleet.domain.model.queries.GetAllLoansByFleetIdQuery;
+import com.guardiants.platform.fleet.domain.model.valueobjects.LoanStatus;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RejectVehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RequestVehicleLoanResource;
+import com.guardiants.platform.fleet.interfaces.rest.resources.VehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.transform.RequestVehicleLoanCommandFromResourceAssembler;
 import com.guardiants.platform.fleet.interfaces.rest.transform.ResponseEntityFromVehicleLoanCommandResultAssembler;
+import com.guardiants.platform.fleet.interfaces.rest.transform.VehicleLoanResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -26,11 +33,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class VehicleLoansController {
 
     private final VehicleLoanCommandService vehicleLoanCommandService;
+    private final VehicleLoanQueryService vehicleLoanQueryService;
     private final MessageSource messageSource;
 
     public VehicleLoansController(VehicleLoanCommandService vehicleLoanCommandService,
+                                  VehicleLoanQueryService vehicleLoanQueryService,
                                   MessageSource messageSource) {
         this.vehicleLoanCommandService = vehicleLoanCommandService;
+        this.vehicleLoanQueryService = vehicleLoanQueryService;
         this.messageSource = messageSource;
     }
 
@@ -83,5 +93,20 @@ public class VehicleLoansController {
                 new ConfirmVehicleReturnCommand(loanId));
         return ResponseEntityFromVehicleLoanCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Get all loans by fleet",
+            description = "Returns all vehicle loans for a fleet, optionally filtered by status.")
+    @GetMapping
+    public ResponseEntity<List<VehicleLoanResource>> getAllLoansByFleetId(
+            @RequestParam Long fleetId,
+            @RequestParam(required = false) String status) {
+        log.debug("GET /api/v1/fleet/vehicle-loans?fleetId={}&status={}", fleetId, status);
+        LoanStatus loanStatus = status != null ? LoanStatus.valueOf(status) : null;
+        return ResponseEntity.ok(
+                vehicleLoanQueryService.handle(new GetAllLoansByFleetIdQuery(fleetId, loanStatus))
+                        .stream()
+                        .map(VehicleLoanResourceFromEntityAssembler::toResourceFromEntity)
+                        .toList());
     }
 }
