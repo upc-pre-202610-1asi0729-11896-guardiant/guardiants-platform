@@ -52,6 +52,14 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
         this.status = status;
     }
 
+    public void updateInformation(String model, String brand, int year) {
+        if (model != null && !model.isBlank()) this.model = model;
+        if (brand != null && !brand.isBlank()) this.brand = brand;
+        if (year > 1900) this.year = year;
+    }
+
+    public void deactivate() { this.status = VehicleStatus.INACTIVE; }
+
     public boolean isActive()           { return status == VehicleStatus.ACTIVE; }
     public boolean isAvailableForLoan() { return status == VehicleStatus.ACTIVE; }
 }
