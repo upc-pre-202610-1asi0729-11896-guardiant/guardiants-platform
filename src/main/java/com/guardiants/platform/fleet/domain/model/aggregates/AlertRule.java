@@ -1,6 +1,7 @@
 package com.guardiants.platform.fleet.domain.model.aggregates;
 
 import com.guardiants.platform.fleet.domain.model.commands.CreateAlertRuleCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UpdateAlertRuleCommand;
 import com.guardiants.platform.fleet.domain.model.valueobjects.AlertRuleType;
 import com.guardiants.platform.fleet.domain.model.valueobjects.Geofence;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
@@ -53,6 +54,14 @@ public class AlertRule extends AbstractDomainAggregateRoot<AlertRule> {
         this.speedThresholdKmh = speedThresholdKmh;
         this.prolongedStopThresholdMinutes = prolongedStopThresholdMinutes;
         this.enabled = enabled;
+    }
+
+    public void update(UpdateAlertRuleCommand command) {
+        if (command.enabled() != null) this.enabled = command.enabled();
+        if (command.geofence() != null) this.geofence = command.geofence();
+        if (command.speedThresholdKmh() != null) this.speedThresholdKmh = command.speedThresholdKmh();
+        if (command.prolongedStopThresholdMinutes() != null)
+            this.prolongedStopThresholdMinutes = command.prolongedStopThresholdMinutes();
     }
 
     public boolean appliesToVehicle(Long vehicleId) {
