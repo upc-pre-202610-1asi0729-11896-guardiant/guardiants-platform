@@ -2,7 +2,9 @@ package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.VehicleLoanCommandService;
 import com.guardiants.platform.fleet.domain.model.commands.ApproveVehicleLoanCommand;
+import com.guardiants.platform.fleet.domain.model.commands.ConfirmVehicleReturnCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RejectVehicleLoanCommand;
+import com.guardiants.platform.fleet.domain.model.commands.RequestVehicleReturnCommand;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RejectVehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RequestVehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.transform.RequestVehicleLoanCommandFromResourceAssembler;
@@ -61,6 +63,24 @@ public class VehicleLoansController {
                                                @Valid @RequestBody RejectVehicleLoanResource resource) {
         var result = vehicleLoanCommandService.handle(
                 new RejectVehicleLoanCommand(loanId, approverId, resource.reason()));
+        return ResponseEntityFromVehicleLoanCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Request vehicle return")
+    @PatchMapping("/{loanId}/request-return")
+    public ResponseEntity<?> requestVehicleReturn(@PathVariable Long loanId) {
+        var result = vehicleLoanCommandService.handle(
+                new RequestVehicleReturnCommand(loanId));
+        return ResponseEntityFromVehicleLoanCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Confirm vehicle return")
+    @PatchMapping("/{loanId}/confirm-return")
+    public ResponseEntity<?> confirmVehicleReturn(@PathVariable Long loanId) {
+        var result = vehicleLoanCommandService.handle(
+                new ConfirmVehicleReturnCommand(loanId));
         return ResponseEntityFromVehicleLoanCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
