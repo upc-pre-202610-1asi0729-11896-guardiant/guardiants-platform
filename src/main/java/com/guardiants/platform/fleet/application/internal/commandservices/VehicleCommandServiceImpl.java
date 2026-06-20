@@ -3,9 +3,12 @@ package com.guardiants.platform.fleet.application.internal.commandservices;
 import com.guardiants.platform.fleet.application.commandservices.VehicleCommandFailure;
 import com.guardiants.platform.fleet.application.commandservices.VehicleCommandService;
 import com.guardiants.platform.fleet.domain.model.aggregates.Vehicle;
+import com.guardiants.platform.fleet.domain.model.commands.AssignDeviceCommand;
 import com.guardiants.platform.fleet.domain.model.commands.DeactivateVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RegisterVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.commands.UpdateVehicleCommand;
+import com.guardiants.platform.fleet.domain.model.entities.DeviceAssignment;
+import com.guardiants.platform.fleet.domain.model.events.IoTDeviceAssignedEvent;
 import com.guardiants.platform.fleet.domain.model.events.VehicleRegisteredEvent;
 import com.guardiants.platform.fleet.domain.model.events.VehicleUpdatedEvent;
 import com.guardiants.platform.fleet.domain.repositories.DeviceAssignmentRepository;
@@ -61,6 +64,23 @@ public class VehicleCommandServiceImpl implements VehicleCommandService {
                     v.deactivate();
                     return Result.<Vehicle, VehicleCommandFailure>success(
                             vehicleRepository.save(v));
+                })
+                .orElse(Result.failure(new VehicleCommandFailure.VehicleNotFound()));
+    }
+
+    @Override
+    public Result<Vehicle, VehicleCommandFailure> handle(AssignDeviceCommand command) {
+        if (deviceAssignmentRepository.existsActiveByDeviceSerial(command.deviceSerial())) {
+            return Result.failure(new VehicleCommandFailure.DeviceAlreadyAssigned());
+        }
+        return vehicleRepository.findById(command.vehicleId())
+                .map(vehicle -> {
+                    var assignment = new DeviceAssignment(
+                            command.vehicleId(), command.deviceSerial());
+                    deviceAssignmentRepository.save(assignment);
+                    eventPublisher.publishEvent(
+                            new IoTDeviceAssignedEvent(vehicle.getId(), command.deviceSerial()));
+                    return Result.<Vehicle, VehicleCommandFailure>success(vehicle);
                 })
                 .orElse(Result.failure(new VehicleCommandFailure.VehicleNotFound()));
     }
