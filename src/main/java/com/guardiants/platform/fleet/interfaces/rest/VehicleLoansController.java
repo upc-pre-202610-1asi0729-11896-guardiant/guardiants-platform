@@ -1,6 +1,9 @@
 package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.VehicleLoanCommandService;
+import com.guardiants.platform.fleet.domain.model.commands.ApproveVehicleLoanCommand;
+import com.guardiants.platform.fleet.domain.model.commands.RejectVehicleLoanCommand;
+import com.guardiants.platform.fleet.interfaces.rest.resources.RejectVehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RequestVehicleLoanResource;
 import com.guardiants.platform.fleet.interfaces.rest.transform.RequestVehicleLoanCommandFromResourceAssembler;
 import com.guardiants.platform.fleet.interfaces.rest.transform.ResponseEntityFromVehicleLoanCommandResultAssembler;
@@ -37,6 +40,27 @@ public class VehicleLoansController {
         log.debug("POST /api/v1/fleet/vehicle-loans - vehicleId={}", resource.vehicleId());
         var command = RequestVehicleLoanCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = vehicleLoanCommandService.handle(command);
+        return ResponseEntityFromVehicleLoanCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Approve vehicle loan")
+    @PatchMapping("/{loanId}/approve")
+    public ResponseEntity<?> approveVehicleLoan(@PathVariable Long loanId,
+                                                @RequestParam Long approverId) {
+        var result = vehicleLoanCommandService.handle(
+                new ApproveVehicleLoanCommand(loanId, approverId));
+        return ResponseEntityFromVehicleLoanCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Reject vehicle loan")
+    @PatchMapping("/{loanId}/reject")
+    public ResponseEntity<?> rejectVehicleLoan(@PathVariable Long loanId,
+                                               @RequestParam Long approverId,
+                                               @Valid @RequestBody RejectVehicleLoanResource resource) {
+        var result = vehicleLoanCommandService.handle(
+                new RejectVehicleLoanCommand(loanId, approverId, resource.reason()));
         return ResponseEntityFromVehicleLoanCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }

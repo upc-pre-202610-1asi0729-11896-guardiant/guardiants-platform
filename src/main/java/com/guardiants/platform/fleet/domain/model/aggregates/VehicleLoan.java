@@ -69,6 +69,23 @@ public class VehicleLoan extends AbstractDomainAggregateRoot<VehicleLoan> {
         this.expectedReturnDate = expectedReturnDate;
     }
 
+    public void approve(Long approverId) {
+        if (status != LoanStatus.REQUESTED)
+            throw new IllegalStateException("fleet.error.invalidStatusTransition");
+        this.approvedByApproverId = approverId;
+        this.status = LoanStatus.APPROVED;
+        this.decidedAt = Instant.now();
+    }
+
+    public void reject(Long approverId, String reason) {
+        if (status != LoanStatus.REQUESTED)
+            throw new IllegalStateException("fleet.error.invalidStatusTransition");
+        this.approvedByApproverId = approverId;
+        this.rejectionReason = reason;
+        this.status = LoanStatus.REJECTED;
+        this.decidedAt = Instant.now();
+    }
+
     public boolean isPending() { return status == LoanStatus.REQUESTED; }
 
     public boolean isOverdue() {
