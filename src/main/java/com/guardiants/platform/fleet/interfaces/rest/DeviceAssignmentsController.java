@@ -2,6 +2,7 @@ package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.VehicleCommandService;
 import com.guardiants.platform.fleet.domain.model.commands.AssignDeviceCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UnassignDeviceCommand;
 import com.guardiants.platform.fleet.interfaces.rest.resources.AssignDeviceResource;
 import com.guardiants.platform.fleet.interfaces.rest.transform.ResponseEntityFromVehicleCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +39,15 @@ public class DeviceAssignmentsController {
         log.debug("POST /api/v1/fleet/vehicles/{}/device-assignments", vehicleId);
         var result = vehicleCommandService.handle(
                 new AssignDeviceCommand(vehicleId, resource.deviceSerial()));
+        return ResponseEntityFromVehicleCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Unassign IoT device from vehicle")
+    @DeleteMapping("/{assignmentId}")
+    public ResponseEntity<?> unassignDevice(@PathVariable Long vehicleId,
+                                            @PathVariable Long assignmentId) {
+        var result = vehicleCommandService.handle(new UnassignDeviceCommand(assignmentId));
         return ResponseEntityFromVehicleCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
