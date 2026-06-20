@@ -31,6 +31,17 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
     @Column(nullable = false, length = 15)
     private VehicleStatus status = VehicleStatus.ACTIVE;
 
+    /** Reconstruction constructor used by persistence assemblers. */
+    public Vehicle(Long fleetId, String plate, String model, String brand,
+                   int year, VehicleStatus status) {
+        this.fleetId = fleetId;
+        this.plate = plate;
+        this.model = model;
+        this.brand = brand;
+        this.year = year;
+        this.status = status;
+    }
+
     public boolean isActive()           { return status == VehicleStatus.ACTIVE; }
     public boolean isAvailableForLoan() { return status == VehicleStatus.ACTIVE; }
 }
