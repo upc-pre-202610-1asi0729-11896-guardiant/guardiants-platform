@@ -1,5 +1,6 @@
 package com.guardiants.platform.fleet.domain.model.aggregates;
 
+import com.guardiants.platform.fleet.domain.model.commands.RequestVehicleLoanCommand;
 import com.guardiants.platform.fleet.domain.model.valueobjects.LoanStatus;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
@@ -38,6 +39,35 @@ public class VehicleLoan extends AbstractDomainAggregateRoot<VehicleLoan> {
     private String rejectionReason;
 
     private Instant expectedReturnDate;
+
+    public VehicleLoan(RequestVehicleLoanCommand command, Long fleetId) {
+        this.vehicleId = command.vehicleId();
+        this.fleetId = fleetId;
+        this.requestedByPersonnelId = command.requestedByPersonnelId();
+        this.status = LoanStatus.REQUESTED;
+        this.requestedAt = Instant.now();
+        this.expectedReturnDate = command.expectedReturnDate();
+    }
+
+    /** Reconstruction constructor used by persistence assemblers. */
+    public VehicleLoan(Long vehicleId, Long fleetId, Long requestedByPersonnelId,
+                       Long approvedByApproverId, LoanStatus status, Instant requestedAt,
+                       Instant decidedAt, Instant assignedAt, Instant returnRequestedAt,
+                       Instant returnConfirmedAt, String rejectionReason,
+                       Instant expectedReturnDate) {
+        this.vehicleId = vehicleId;
+        this.fleetId = fleetId;
+        this.requestedByPersonnelId = requestedByPersonnelId;
+        this.approvedByApproverId = approvedByApproverId;
+        this.status = status;
+        this.requestedAt = requestedAt;
+        this.decidedAt = decidedAt;
+        this.assignedAt = assignedAt;
+        this.returnRequestedAt = returnRequestedAt;
+        this.returnConfirmedAt = returnConfirmedAt;
+        this.rejectionReason = rejectionReason;
+        this.expectedReturnDate = expectedReturnDate;
+    }
 
     public boolean isPending() { return status == LoanStatus.REQUESTED; }
 
