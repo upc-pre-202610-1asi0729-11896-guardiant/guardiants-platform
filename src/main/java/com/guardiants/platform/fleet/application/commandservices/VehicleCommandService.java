@@ -4,6 +4,7 @@ import com.guardiants.platform.fleet.domain.model.aggregates.Vehicle;
 import com.guardiants.platform.fleet.domain.model.commands.AssignDeviceCommand;
 import com.guardiants.platform.fleet.domain.model.commands.DeactivateVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RegisterVehicleCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UnassignDeviceCommand;
 import com.guardiants.platform.fleet.domain.model.commands.UpdateVehicleCommand;
 import com.guardiants.platform.shared.application.result.Result;
 
@@ -12,4 +13,5 @@ public interface VehicleCommandService {
     Result<Vehicle, VehicleCommandFailure> handle(UpdateVehicleCommand command);
     Result<Vehicle, VehicleCommandFailure> handle(DeactivateVehicleCommand command);
     Result<Vehicle, VehicleCommandFailure> handle(AssignDeviceCommand command);
+    Result<Vehicle, VehicleCommandFailure> handle(UnassignDeviceCommand command);
 }
