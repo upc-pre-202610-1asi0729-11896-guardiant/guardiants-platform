@@ -6,9 +6,11 @@ import com.guardiants.platform.fleet.domain.model.aggregates.Vehicle;
 import com.guardiants.platform.fleet.domain.model.commands.AssignDeviceCommand;
 import com.guardiants.platform.fleet.domain.model.commands.DeactivateVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RegisterVehicleCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UnassignDeviceCommand;
 import com.guardiants.platform.fleet.domain.model.commands.UpdateVehicleCommand;
 import com.guardiants.platform.fleet.domain.model.entities.DeviceAssignment;
 import com.guardiants.platform.fleet.domain.model.events.IoTDeviceAssignedEvent;
+import com.guardiants.platform.fleet.domain.model.events.IoTDeviceUnassignedEvent;
 import com.guardiants.platform.fleet.domain.model.events.VehicleRegisteredEvent;
 import com.guardiants.platform.fleet.domain.model.events.VehicleUpdatedEvent;
 import com.guardiants.platform.fleet.domain.repositories.DeviceAssignmentRepository;
@@ -83,5 +85,22 @@ public class VehicleCommandServiceImpl implements VehicleCommandService {
                     return Result.<Vehicle, VehicleCommandFailure>success(vehicle);
                 })
                 .orElse(Result.failure(new VehicleCommandFailure.VehicleNotFound()));
+    }
+
+    @Override
+    public Result<Vehicle, VehicleCommandFailure> handle(UnassignDeviceCommand command) {
+        return deviceAssignmentRepository.findById(command.assignmentId())
+                .map(assignment -> {
+                    String serial = assignment.getDeviceSerial();
+                    Long vehicleId = assignment.getVehicleId();
+                    assignment.unassign();
+                    deviceAssignmentRepository.save(assignment);
+                    eventPublisher.publishEvent(
+                            new IoTDeviceUnassignedEvent(vehicleId, serial));
+                    return vehicleRepository.findById(vehicleId)
+                            .map(v -> Result.<Vehicle, VehicleCommandFailure>success(v))
+                            .orElse(Result.failure(new VehicleCommandFailure.VehicleNotFound()));
+                })
+                .orElse(Result.failure(new VehicleCommandFailure.DeviceAssignmentNotFound()));
     }
 }
