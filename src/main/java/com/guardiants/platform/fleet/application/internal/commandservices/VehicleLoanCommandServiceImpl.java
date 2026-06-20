@@ -3,6 +3,8 @@ package com.guardiants.platform.fleet.application.internal.commandservices;
 import com.guardiants.platform.fleet.application.commandservices.VehicleLoanCommandFailure;
 import com.guardiants.platform.fleet.application.commandservices.VehicleLoanCommandService;
 import com.guardiants.platform.fleet.domain.model.aggregates.VehicleLoan;
+import com.guardiants.platform.fleet.domain.model.commands.ApproveVehicleLoanCommand;
+import com.guardiants.platform.fleet.domain.model.commands.RejectVehicleLoanCommand;
 import com.guardiants.platform.fleet.domain.model.commands.RequestVehicleLoanCommand;
 import com.guardiants.platform.fleet.domain.repositories.VehicleLoanRepository;
 import com.guardiants.platform.fleet.domain.repositories.VehicleRepository;
@@ -39,5 +41,37 @@ public class VehicleLoanCommandServiceImpl implements VehicleLoanCommandService 
                             vehicleLoanRepository.save(loan));
                 })
                 .orElse(Result.failure(new VehicleLoanCommandFailure.VehicleNotAvailable()));
+    }
+
+    @Override
+    public Result<VehicleLoan, VehicleLoanCommandFailure> handle(ApproveVehicleLoanCommand command) {
+        return vehicleLoanRepository.findById(command.loanId())
+                .map(loan -> {
+                    try {
+                        loan.approve(command.approverId());
+                        return Result.<VehicleLoan, VehicleLoanCommandFailure>success(
+                                vehicleLoanRepository.save(loan));
+                    } catch (IllegalStateException e) {
+                        return Result.<VehicleLoan, VehicleLoanCommandFailure>failure(
+                                new VehicleLoanCommandFailure.InvalidStatusTransition());
+                    }
+                })
+                .orElse(Result.failure(new VehicleLoanCommandFailure.LoanNotFound()));
+    }
+
+    @Override
+    public Result<VehicleLoan, VehicleLoanCommandFailure> handle(RejectVehicleLoanCommand command) {
+        return vehicleLoanRepository.findById(command.loanId())
+                .map(loan -> {
+                    try {
+                        loan.reject(command.approverId(), command.reason());
+                        return Result.<VehicleLoan, VehicleLoanCommandFailure>success(
+                                vehicleLoanRepository.save(loan));
+                    } catch (IllegalStateException e) {
+                        return Result.<VehicleLoan, VehicleLoanCommandFailure>failure(
+                                new VehicleLoanCommandFailure.InvalidStatusTransition());
+                    }
+                })
+                .orElse(Result.failure(new VehicleLoanCommandFailure.LoanNotFound()));
     }
 }
