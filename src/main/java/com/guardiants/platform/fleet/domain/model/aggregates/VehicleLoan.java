@@ -86,6 +86,27 @@ public class VehicleLoan extends AbstractDomainAggregateRoot<VehicleLoan> {
         this.decidedAt = Instant.now();
     }
 
+    public void assignToPersonnel() {
+        if (status != LoanStatus.APPROVED)
+            throw new IllegalStateException("fleet.error.invalidStatusTransition");
+        this.status = LoanStatus.ASSIGNED;
+        this.assignedAt = Instant.now();
+    }
+
+    public void requestReturn() {
+        if (status != LoanStatus.ASSIGNED)
+            throw new IllegalStateException("fleet.error.invalidStatusTransition");
+        this.status = LoanStatus.RETURN_REQUESTED;
+        this.returnRequestedAt = Instant.now();
+    }
+
+    public void confirmReturn() {
+        if (status != LoanStatus.RETURN_REQUESTED)
+            throw new IllegalStateException("fleet.error.invalidStatusTransition");
+        this.status = LoanStatus.RETURNED;
+        this.returnConfirmedAt = Instant.now();
+    }
+
     public boolean isPending() { return status == LoanStatus.REQUESTED; }
 
     public boolean isOverdue() {

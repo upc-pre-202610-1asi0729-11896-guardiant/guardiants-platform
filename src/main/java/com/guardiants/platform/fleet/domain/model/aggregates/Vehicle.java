@@ -60,6 +60,9 @@ public class Vehicle extends AbstractDomainAggregateRoot<Vehicle> {
 
     public void deactivate() { this.status = VehicleStatus.INACTIVE; }
 
+    public void markOnLoan()    { this.status = VehicleStatus.ON_LOAN; }
+    public void markAvailable() { this.status = VehicleStatus.ACTIVE; }
+
     public boolean isActive()           { return status == VehicleStatus.ACTIVE; }
     public boolean isAvailableForLoan() { return status == VehicleStatus.ACTIVE; }
 }
