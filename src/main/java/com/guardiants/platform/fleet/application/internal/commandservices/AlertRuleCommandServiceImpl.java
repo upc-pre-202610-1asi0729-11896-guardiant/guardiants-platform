@@ -4,6 +4,7 @@ import com.guardiants.platform.fleet.application.commandservices.AlertRuleComman
 import com.guardiants.platform.fleet.application.commandservices.AlertRuleCommandService;
 import com.guardiants.platform.fleet.domain.model.aggregates.AlertRule;
 import com.guardiants.platform.fleet.domain.model.commands.CreateAlertRuleCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UpdateAlertRuleCommand;
 import com.guardiants.platform.fleet.domain.model.events.FleetAlertRuleConfiguredEvent;
 import com.guardiants.platform.fleet.domain.repositories.AlertRuleRepository;
 import com.guardiants.platform.shared.application.result.Result;
@@ -34,5 +35,16 @@ public class AlertRuleCommandServiceImpl implements AlertRuleCommandService {
         } catch (IllegalArgumentException e) {
             return Result.failure(new AlertRuleCommandFailure.InvalidGeofence());
         }
+    }
+
+    @Override
+    public Result<AlertRule, AlertRuleCommandFailure> handle(UpdateAlertRuleCommand command) {
+        return alertRuleRepository.findById(command.ruleId())
+                .map(rule -> {
+                    rule.update(command);
+                    return Result.<AlertRule, AlertRuleCommandFailure>success(
+                            alertRuleRepository.save(rule));
+                })
+                .orElse(Result.failure(new AlertRuleCommandFailure.AlertRuleNotFound()));
     }
 }
