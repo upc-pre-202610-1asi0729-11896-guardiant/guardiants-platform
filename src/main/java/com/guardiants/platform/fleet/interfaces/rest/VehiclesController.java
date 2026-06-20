@@ -1,7 +1,10 @@
 package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.VehicleCommandService;
+import com.guardiants.platform.fleet.domain.model.commands.DeactivateVehicleCommand;
+import com.guardiants.platform.fleet.domain.model.commands.UpdateVehicleCommand;
 import com.guardiants.platform.fleet.interfaces.rest.resources.RegisterVehicleResource;
+import com.guardiants.platform.fleet.interfaces.rest.resources.UpdateVehicleResource;
 import com.guardiants.platform.fleet.interfaces.rest.transform.RegisterVehicleCommandFromResourceAssembler;
 import com.guardiants.platform.fleet.interfaces.rest.transform.ResponseEntityFromVehicleCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +39,25 @@ public class VehiclesController {
         log.debug("POST /api/v1/fleet/vehicles - plate={}", resource.plate());
         var command = RegisterVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = vehicleCommandService.handle(command);
+        return ResponseEntityFromVehicleCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Update vehicle")
+    @PutMapping("/{vehicleId}")
+    public ResponseEntity<?> updateVehicle(@PathVariable Long vehicleId,
+                                           @Valid @RequestBody UpdateVehicleResource resource) {
+        var result = vehicleCommandService.handle(
+                new UpdateVehicleCommand(vehicleId, resource.model(),
+                        resource.brand(), resource.year()));
+        return ResponseEntityFromVehicleCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Deactivate vehicle")
+    @DeleteMapping("/{vehicleId}")
+    public ResponseEntity<?> deactivateVehicle(@PathVariable Long vehicleId) {
+        var result = vehicleCommandService.handle(new DeactivateVehicleCommand(vehicleId));
         return ResponseEntityFromVehicleCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
