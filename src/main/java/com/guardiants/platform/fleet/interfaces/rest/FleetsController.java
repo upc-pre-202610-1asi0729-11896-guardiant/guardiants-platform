@@ -1,16 +1,18 @@
 package com.guardiants.platform.fleet.interfaces.rest;
 
 import com.guardiants.platform.fleet.application.commandservices.FleetCommandService;
+import com.guardiants.platform.fleet.interfaces.rest.resources.CreateFleetResource;
+import com.guardiants.platform.fleet.interfaces.rest.transform.CreateFleetCommandFromResourceAssembler;
+import com.guardiants.platform.fleet.interfaces.rest.transform.ResponseEntityFromFleetCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 @RestController
