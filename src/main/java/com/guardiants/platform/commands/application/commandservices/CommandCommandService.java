@@ -4,10 +4,12 @@ import com.guardiants.platform.commands.domain.model.aggregates.Command;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineBlockCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueDeviceRestartCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
+import com.guardiants.platform.commands.domain.model.commands.UpdateCommandStatusCommand;
 import com.guardiants.platform.shared.application.result.Result;
 
 public interface CommandCommandService {
     Result<Command, CommandFailure> handle(IssueEngineBlockCommand command);
     Result<Command, CommandFailure> handle(IssueEngineUnblockCommand command);
     Result<Command, CommandFailure> handle(IssueDeviceRestartCommand command);
+    Result<Command, CommandFailure> handle(UpdateCommandStatusCommand command);
 }
