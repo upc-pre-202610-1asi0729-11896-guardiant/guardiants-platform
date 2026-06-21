@@ -1,10 +1,14 @@
 package com.guardiants.platform.commands.interfaces.rest;
 
 import com.guardiants.platform.commands.application.commandservices.TheftReportCommandService;
+import com.guardiants.platform.commands.application.queryservices.TheftReportQueryService;
 import com.guardiants.platform.commands.domain.model.commands.ResolveTheftReportCommand;
+import com.guardiants.platform.commands.domain.model.queries.GetActiveTheftReportsQuery;
 import com.guardiants.platform.commands.interfaces.rest.resources.ReportTheftResource;
+import com.guardiants.platform.commands.interfaces.rest.resources.TheftReportResource;
 import com.guardiants.platform.commands.interfaces.rest.transform.ReportTheftCommandFromResourceAssembler;
 import com.guardiants.platform.commands.interfaces.rest.transform.ResponseEntityFromTheftReportResultAssembler;
+import com.guardiants.platform.commands.interfaces.rest.transform.TheftReportResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -22,11 +28,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class TheftReportsController {
 
     private final TheftReportCommandService theftReportCommandService;
+    private final TheftReportQueryService theftReportQueryService;
     private final MessageSource messageSource;
 
     public TheftReportsController(TheftReportCommandService theftReportCommandService,
+                                 TheftReportQueryService theftReportQueryService,
                                  MessageSource messageSource) {
         this.theftReportCommandService = theftReportCommandService;
+        this.theftReportQueryService = theftReportQueryService;
         this.messageSource = messageSource;
     }
 
@@ -49,5 +58,14 @@ public class TheftReportsController {
                 new ResolveTheftReportCommand(reportId));
         return ResponseEntityFromTheftReportResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Get active theft reports")
+    @GetMapping
+    public ResponseEntity<List<TheftReportResource>> getActiveTheftReports() {
+        return ResponseEntity.ok(theftReportQueryService.handle(new GetActiveTheftReportsQuery())
+                .stream()
+                .map(TheftReportResourceFromEntityAssembler::toResourceFromEntity)
+                .toList());
     }
 }
