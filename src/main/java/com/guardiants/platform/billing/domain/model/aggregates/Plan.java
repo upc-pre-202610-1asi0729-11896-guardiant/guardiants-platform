@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "plans")
 public class Plan extends AbstractDomainAggregateRoot<Plan> {
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(name = "plan_key", nullable = false, unique = true, length = 30)
     private String key;
 
     @Column(nullable = false)

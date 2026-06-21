@@ -11,7 +11,7 @@ import lombok.Setter;
 @Table(name = "plans")
 public class PlanPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(name = "plan_key", nullable = false, unique = true, length = 30)
     private String key;
 
     @Column(nullable = false)
