@@ -2,6 +2,7 @@ package com.guardiants.platform.alerting.interfaces.rest;
 
 import com.guardiants.platform.alerting.application.commandservices.SecurityAlertCommandService;
 import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
+import com.guardiants.platform.alerting.domain.model.commands.CloseAlertCommand;
 import com.guardiants.platform.alerting.interfaces.rest.resources.GenerateSecurityAlertResource;
 import com.guardiants.platform.alerting.interfaces.rest.transform.GenerateSecurityAlertCommandFromResourceAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromSecurityAlertCommandResultAssembler;
@@ -48,6 +49,15 @@ public class SecurityAlertsController {
     public ResponseEntity<?> acknowledgeAlert(@PathVariable Long alertId) {
         log.debug("PATCH /api/v1/security-alerts/{}/acknowledge", alertId);
         var result = securityAlertCommandService.handle(new AcknowledgeAlertCommand(alertId));
+        return ResponseEntityFromSecurityAlertCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Close alert", description = "Marks a security alert as closed.")
+    @PatchMapping("/{alertId}/close")
+    public ResponseEntity<?> closeAlert(@PathVariable Long alertId) {
+        log.debug("PATCH /api/v1/security-alerts/{}/close", alertId);
+        var result = securityAlertCommandService.handle(new CloseAlertCommand(alertId));
         return ResponseEntityFromSecurityAlertCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
