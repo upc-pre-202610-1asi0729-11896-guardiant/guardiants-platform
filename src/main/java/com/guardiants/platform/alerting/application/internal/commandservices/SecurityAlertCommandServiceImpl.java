@@ -5,6 +5,7 @@ import com.guardiants.platform.alerting.application.commandservices.SecurityAler
 import com.guardiants.platform.alerting.application.internal.outboundservices.fcm.PushNotificationPort;
 import com.guardiants.platform.alerting.domain.model.aggregates.SecurityAlert;
 import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
+import com.guardiants.platform.alerting.domain.model.commands.CloseAlertCommand;
 import com.guardiants.platform.alerting.domain.model.commands.GenerateSecurityAlertCommand;
 import com.guardiants.platform.alerting.domain.model.events.AlertAcknowledgedEvent;
 import com.guardiants.platform.alerting.domain.model.events.SecurityAlertGeneratedEvent;
@@ -59,6 +60,22 @@ public class SecurityAlertCommandServiceImpl implements SecurityAlertCommandServ
                         var saved = securityAlertRepository.save(alert);
                         eventPublisher.publishEvent(new AlertAcknowledgedEvent(saved.getId()));
                         return Result.<SecurityAlert, SecurityAlertCommandFailure>success(saved);
+                    } catch (IllegalStateException e) {
+                        return Result.<SecurityAlert, SecurityAlertCommandFailure>failure(
+                                new SecurityAlertCommandFailure.InvalidStatusTransition());
+                    }
+                })
+                .orElse(Result.failure(new SecurityAlertCommandFailure.AlertNotFound()));
+    }
+
+    @Override
+    public Result<SecurityAlert, SecurityAlertCommandFailure> handle(CloseAlertCommand command) {
+        return securityAlertRepository.findById(command.alertId())
+                .map(alert -> {
+                    try {
+                        alert.close();
+                        return Result.<SecurityAlert, SecurityAlertCommandFailure>success(
+                                securityAlertRepository.save(alert));
                     } catch (IllegalStateException e) {
                         return Result.<SecurityAlert, SecurityAlertCommandFailure>failure(
                                 new SecurityAlertCommandFailure.InvalidStatusTransition());
