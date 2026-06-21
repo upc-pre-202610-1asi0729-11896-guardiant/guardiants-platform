@@ -22,6 +22,11 @@ public class RouteHistoryViewRepositoryImpl implements RouteHistoryViewRepositor
     }
 
     @Override
+    public Optional<RouteHistoryView> findById(Long id) {
+        return persistenceRepository.findById(id).map(assembler::toViewFromPersistenceEntity);
+    }
+
+    @Override
     public Optional<RouteHistoryView> findByVehicleIdAndPeriod(Long vehicleId, Instant start, Instant end) {
         return persistenceRepository
                 .findByVehicleIdAndPeriodStartGreaterThanEqualAndPeriodEndLessThanEqual(vehicleId, start, end)
