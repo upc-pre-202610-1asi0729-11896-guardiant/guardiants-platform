@@ -7,6 +7,7 @@ import com.guardiants.platform.telemetry.application.internal.outboundservices.e
 import com.guardiants.platform.telemetry.domain.model.aggregates.TelemetryPoint;
 import com.guardiants.platform.telemetry.domain.model.aggregates.VehicleGeneralStatus;
 import com.guardiants.platform.telemetry.domain.model.commands.IngestTelemetryPointCommand;
+import com.guardiants.platform.telemetry.domain.model.commands.SetEngineLockStatusCommand;
 import com.guardiants.platform.telemetry.domain.model.commands.UpdateVehicleConnectivityCommand;
 import com.guardiants.platform.telemetry.domain.model.events.DeviceConnectionRestoredEvent;
 import com.guardiants.platform.telemetry.domain.model.events.GpsSignalLostEvent;
@@ -81,6 +82,18 @@ public class TelemetryCommandServiceImpl implements TelemetryCommandService {
                                 new DeviceConnectionRestoredEvent(command.vehicleId(), command.occurredAt()));
                     }
                     return Result.<TelemetryPoint, TelemetryCommandFailure>success(latest);
+                })
+                .orElse(Result.failure(new TelemetryCommandFailure.VehicleNotFound()));
+    }
+
+    @Override
+    public Result<VehicleGeneralStatus, TelemetryCommandFailure> handle(
+            SetEngineLockStatusCommand command) {
+        return vehicleGeneralStatusRepository.findByVehicleId(command.vehicleId())
+                .map(status -> {
+                    status.setEngineLocked(command.locked());
+                    return Result.<VehicleGeneralStatus, TelemetryCommandFailure>success(
+                            vehicleGeneralStatusRepository.save(status));
                 })
                 .orElse(Result.failure(new TelemetryCommandFailure.VehicleNotFound()));
     }
