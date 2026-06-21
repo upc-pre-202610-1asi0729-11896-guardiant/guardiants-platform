@@ -1,13 +1,17 @@
 package com.guardiants.platform.commands.interfaces.rest;
 
 import com.guardiants.platform.commands.application.commandservices.CommandCommandService;
+import com.guardiants.platform.commands.application.queryservices.CommandQueryService;
 import com.guardiants.platform.commands.domain.model.commands.IssueDeviceRestartCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
+import com.guardiants.platform.commands.domain.model.queries.GetCommandByIdQuery;
+import com.guardiants.platform.commands.domain.model.queries.GetCommandsForVehicleQuery;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueDeviceRestartResource;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineBlockResource;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineUnblockResource;
 import com.guardiants.platform.commands.interfaces.rest.transform.IssueEngineBlockCommandFromResourceAssembler;
 import com.guardiants.platform.commands.interfaces.rest.transform.ResponseEntityFromCommandResultAssembler;
+import com.guardiants.platform.commands.interfaces.rest.transform.ResponseEntityFromCommandsQueryResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,11 +29,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class CommandsController {
 
     private final CommandCommandService commandCommandService;
+    private final CommandQueryService commandQueryService;
     private final MessageSource messageSource;
 
     public CommandsController(CommandCommandService commandCommandService,
+                             CommandQueryService commandQueryService,
                              MessageSource messageSource) {
         this.commandCommandService = commandCommandService;
+        this.commandQueryService = commandQueryService;
         this.messageSource = messageSource;
     }
 
@@ -65,5 +72,23 @@ public class CommandsController {
                 new IssueDeviceRestartCommand(resource.vehicleId(), resource.issuedByUserId()));
         return ResponseEntityFromCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Get command by ID")
+    @GetMapping("/{commandId}")
+    public ResponseEntity<?> getCommandById(@PathVariable Long commandId) {
+        var cmd = commandQueryService.handle(new GetCommandByIdQuery(commandId));
+        if (cmd.isEmpty()) {
+            return ResponseEntityFromCommandsQueryResultAssembler.notFound(
+                    messageSource, "commands.error.vehicleNotFound", commandId);
+        }
+        return ResponseEntityFromCommandsQueryResultAssembler.toResponseEntityFromCommand(cmd);
+    }
+
+    @Operation(summary = "Get commands for vehicle")
+    @GetMapping
+    public ResponseEntity<?> getCommandsForVehicle(@RequestParam Long vehicleId) {
+        return ResponseEntityFromCommandsQueryResultAssembler.toResponseEntityFromCommandList(
+                commandQueryService.handle(new GetCommandsForVehicleQuery(vehicleId)));
     }
 }
