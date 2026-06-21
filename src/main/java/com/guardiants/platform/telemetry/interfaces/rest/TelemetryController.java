@@ -2,6 +2,7 @@ package com.guardiants.platform.telemetry.interfaces.rest;
 
 import com.guardiants.platform.telemetry.application.commandservices.TelemetryCommandService;
 import com.guardiants.platform.telemetry.application.queryservices.TelemetryQueryService;
+import com.guardiants.platform.telemetry.domain.model.queries.GetLatestTelemetryPointQuery;
 import com.guardiants.platform.telemetry.domain.model.queries.GetVehicleGeneralStatusQuery;
 import com.guardiants.platform.telemetry.domain.repositories.TelemetryPointRepository;
 import com.guardiants.platform.telemetry.interfaces.rest.resources.IngestTelemetryPointResource;
@@ -69,5 +70,19 @@ public class TelemetryController {
                 .orElse(null);
         return ResponseEntityFromTelemetryQueryResultAssembler
                 .toResponseEntityFromVehicleGeneralStatus(status, latestPoint);
+    }
+
+    @Operation(summary = "Get vehicle location (TS39)",
+            description = "Returns lat, lng, speed, timestamp and signal quality for a vehicle.")
+    @GetMapping("/vehicles/{vehicleId}/location")
+    public ResponseEntity<?> getVehicleLocation(@PathVariable Long vehicleId) {
+        log.debug("GET /api/v1/telemetry/vehicles/{}/location", vehicleId);
+        var point = telemetryQueryService.handle(new GetLatestTelemetryPointQuery(vehicleId));
+        if (point.isEmpty()) {
+            return ResponseEntityFromTelemetryQueryResultAssembler.notFound(
+                    messageSource, "telemetry.error.vehicleNotFound", vehicleId);
+        }
+        return ResponseEntity.ok(
+                TelemetryPointResourceFromEntityAssembler.toResourceFromEntity(point.get()));
     }
 }
