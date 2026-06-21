@@ -2,7 +2,9 @@ package com.guardiants.platform.alerting.interfaces.rest;
 
 import com.guardiants.platform.alerting.application.commandservices.AlertRuleCommandService;
 import com.guardiants.platform.alerting.interfaces.rest.resources.CreateAlertRuleResource;
+import com.guardiants.platform.alerting.interfaces.rest.resources.UpdateAlertRuleResource;
 import com.guardiants.platform.alerting.interfaces.rest.transform.CreateAlertRuleCommandFromResourceAssembler;
+import com.guardiants.platform.alerting.interfaces.rest.transform.UpdateAlertRuleCommandFromResourceAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromAlertRuleCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +37,17 @@ public class AlertRulesController {
     public ResponseEntity<?> createAlertRule(@Valid @RequestBody CreateAlertRuleResource resource) {
         log.debug("POST /api/v1/alert-rules - ownerId={}, type={}", resource.ownerId(), resource.type());
         var command = CreateAlertRuleCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = alertRuleCommandService.handle(command);
+        return ResponseEntityFromAlertRuleCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Update alert rule", description = "Enables, disables or modifies an existing alert rule.")
+    @PutMapping("/{ruleId}")
+    public ResponseEntity<?> updateAlertRule(@PathVariable Long ruleId,
+                                             @Valid @RequestBody UpdateAlertRuleResource resource) {
+        log.debug("PUT /api/v1/alert-rules/{}", ruleId);
+        var command = UpdateAlertRuleCommandFromResourceAssembler.toCommandFromResource(ruleId, resource);
         var result = alertRuleCommandService.handle(command);
         return ResponseEntityFromAlertRuleCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
