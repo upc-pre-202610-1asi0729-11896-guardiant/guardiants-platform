@@ -7,7 +7,9 @@ import com.guardiants.platform.commands.application.internal.outboundservices.ev
 import com.guardiants.platform.commands.application.internal.outboundservices.mqtt.CommandDispatchPort;
 import com.guardiants.platform.commands.domain.model.aggregates.Command;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineBlockCommand;
+import com.guardiants.platform.commands.domain.model.commands.IssueDeviceRestartCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
+import com.guardiants.platform.commands.domain.model.events.DeviceRestartedEvent;
 import com.guardiants.platform.commands.domain.model.events.EngineBlockedEvent;
 import com.guardiants.platform.commands.domain.repositories.CommandRepository;
 import com.guardiants.platform.shared.application.result.Result;
@@ -61,5 +63,20 @@ public class CommandCommandServiceImpl implements CommandCommandService {
         commandDispatchPort.dispatch(saved.getId(), saved.getVehicleId(), saved.getType());
         saved.markDispatched();
         return Result.success(commandRepository.save(saved));
+    }
+
+    @Override
+    public Result<Command, CommandFailure> handle(IssueDeviceRestartCommand issueCommand) {
+        if (!fleetVehicleService.existsVehicleById(issueCommand.vehicleId())) {
+            return Result.failure(new CommandFailure.VehicleNotFound());
+        }
+        var command = new Command(issueCommand);
+        var saved = commandRepository.save(command);
+        commandDispatchPort.dispatch(saved.getId(), saved.getVehicleId(), saved.getType());
+        saved.markDispatched();
+        var completed = commandRepository.save(saved);
+        commandEventPublisher.publishDeviceRestarted(
+                new DeviceRestartedEvent(completed.getVehicleId(), completed.getId()));
+        return Result.success(completed);
     }
 }
