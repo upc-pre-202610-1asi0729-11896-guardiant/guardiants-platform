@@ -7,7 +7,7 @@ import com.guardiants.platform.alerting.domain.repositories.AlertRuleRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-@Service
+@Service("alertingAlertRuleQueryServiceImpl")
 public class AlertRuleQueryServiceImpl implements AlertRuleQueryService {
 
     private final AlertRuleRepository alertRuleRepository;

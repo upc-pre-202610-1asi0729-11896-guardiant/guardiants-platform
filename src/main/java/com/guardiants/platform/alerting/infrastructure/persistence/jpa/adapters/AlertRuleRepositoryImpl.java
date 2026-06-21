@@ -3,18 +3,18 @@ package com.guardiants.platform.alerting.infrastructure.persistence.jpa.adapters
 import com.guardiants.platform.alerting.domain.model.aggregates.AlertRule;
 import com.guardiants.platform.alerting.domain.repositories.AlertRuleRepository;
 import com.guardiants.platform.alerting.infrastructure.persistence.jpa.assemblers.AlertRuleEntityAssembler;
-import com.guardiants.platform.alerting.infrastructure.persistence.jpa.repositories.AlertRulePersistenceRepository;
+import com.guardiants.platform.alerting.infrastructure.persistence.jpa.repositories.AlertingAlertRulePersistenceRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Repository("alertingAlertRuleRepositoryImpl")
 public class AlertRuleRepositoryImpl implements AlertRuleRepository {
 
-    private final AlertRulePersistenceRepository persistenceRepository;
+    private final AlertingAlertRulePersistenceRepository persistenceRepository;
     private final AlertRuleEntityAssembler assembler;
 
-    public AlertRuleRepositoryImpl(AlertRulePersistenceRepository persistenceRepository,
+    public AlertRuleRepositoryImpl(AlertingAlertRulePersistenceRepository persistenceRepository,
                                    AlertRuleEntityAssembler assembler) {
         this.persistenceRepository = persistenceRepository;
         this.assembler = assembler;

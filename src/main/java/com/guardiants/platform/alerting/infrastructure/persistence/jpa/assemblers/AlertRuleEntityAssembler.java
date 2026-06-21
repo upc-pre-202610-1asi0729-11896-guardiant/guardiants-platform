@@ -6,7 +6,7 @@ import com.guardiants.platform.alerting.domain.model.valueobjects.Geofence;
 import com.guardiants.platform.alerting.infrastructure.persistence.jpa.entities.AlertRulePersistenceEntity;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("alertingAlertRuleEntityAssembler")
 public class AlertRuleEntityAssembler {
 
     public AlertRulePersistenceEntity toPersistenceEntityFromDomain(AlertRule rule) {

@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
+@Entity(name = "AlertingAlertRulePersistenceEntity")
 @Table(name = "alert_rules")
 public class AlertRulePersistenceEntity extends AuditableAbstractPersistenceEntity {
 

@@ -3,6 +3,7 @@ package com.guardiants.platform;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
 /**
  * Bootstrap class for the GOD's Tracker Platform application.
  *

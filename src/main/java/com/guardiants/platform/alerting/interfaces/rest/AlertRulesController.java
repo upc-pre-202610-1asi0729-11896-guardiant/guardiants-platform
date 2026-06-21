@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
-@RestController
+@RestController("alertingAlertRulesController")
 @RequestMapping(value = "/api/v1/alert-rules", produces = APPLICATION_JSON_VALUE)
 @Tag(name = "Alert Rules", description = "Endpoints for fleet and personal alert rule management")
 public class AlertRulesController {

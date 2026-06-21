@@ -9,7 +9,7 @@ import com.guardiants.platform.alerting.domain.repositories.AlertRuleRepository;
 import com.guardiants.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("alertingAlertRuleCommandServiceImpl")
 public class AlertRuleCommandServiceImpl implements AlertRuleCommandService {
 
     private final AlertRuleRepository alertRuleRepository;

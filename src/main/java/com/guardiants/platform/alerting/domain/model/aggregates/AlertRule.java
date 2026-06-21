@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Entity
+@Entity(name = "AlertingAlertRule")
 @Table(name = "alert_rules")
 public class AlertRule extends AbstractDomainAggregateRoot<AlertRule> {
 

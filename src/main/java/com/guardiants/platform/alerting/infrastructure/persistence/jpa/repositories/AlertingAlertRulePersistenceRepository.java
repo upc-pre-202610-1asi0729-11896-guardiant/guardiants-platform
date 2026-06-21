@@ -6,8 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Spring Data repository for alerting alert rules. Named distinctly from the Fleet BC's
+ * {@code AlertRulePersistenceRepository} to avoid a duplicate Spring bean definition.
+ */
 @Repository
-public interface AlertRulePersistenceRepository
+public interface AlertingAlertRulePersistenceRepository
         extends JpaRepository<AlertRulePersistenceEntity, Long> {
     List<AlertRulePersistenceEntity> findAllByOwnerId(Long ownerId);
 }
