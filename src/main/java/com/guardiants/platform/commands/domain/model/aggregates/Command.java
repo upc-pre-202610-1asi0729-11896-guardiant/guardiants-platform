@@ -51,6 +51,15 @@ public class Command extends AbstractDomainAggregateRoot<Command> {
         this.issuedAt = Instant.now();
     }
 
+    /** Constructor — ENGINE_UNBLOCK */
+    public Command(IssueEngineUnblockCommand command) {
+        this.vehicleId = command.vehicleId();
+        this.issuedByUserId = command.issuedByUserId();
+        this.type = CommandType.ENGINE_UNBLOCK;
+        this.status = CommandStatus.ISSUED;
+        this.issuedAt = Instant.now();
+    }
+
     /** Reconstruction constructor used by persistence assemblers. */
     public Command(Long vehicleId, Long issuedByUserId, CommandType type, Long triggeredByAlertId,
                    CommandStatus status, Instant issuedAt, Instant dispatchedAt,
