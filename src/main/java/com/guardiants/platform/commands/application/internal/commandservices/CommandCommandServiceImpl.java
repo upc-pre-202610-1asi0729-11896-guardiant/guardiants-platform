@@ -9,6 +9,7 @@ import com.guardiants.platform.commands.domain.model.aggregates.Command;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineBlockCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueDeviceRestartCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
+import com.guardiants.platform.commands.domain.model.commands.UpdateCommandStatusCommand;
 import com.guardiants.platform.commands.domain.model.events.DeviceRestartedEvent;
 import com.guardiants.platform.commands.domain.model.events.EngineBlockedEvent;
 import com.guardiants.platform.commands.domain.repositories.CommandRepository;
@@ -78,5 +79,24 @@ public class CommandCommandServiceImpl implements CommandCommandService {
         commandEventPublisher.publishDeviceRestarted(
                 new DeviceRestartedEvent(completed.getVehicleId(), completed.getId()));
         return Result.success(completed);
+    }
+
+    @Override
+    public Result<Command, CommandFailure> handle(UpdateCommandStatusCommand cmd) {
+        return commandRepository.findById(cmd.commandId())
+                .map(command -> {
+                    switch (cmd.status()) {
+                        case ACKNOWLEDGED -> command.markAcknowledged();
+                        case COMPLETED -> command.complete(cmd.result());
+                        case FAILED -> command.fail(cmd.result());
+                        default -> {
+                            return Result.<Command, CommandFailure>failure(
+                                    new CommandFailure.InvalidStatusTransition());
+                        }
+                    }
+                    return Result.<Command, CommandFailure>success(
+                            commandRepository.save(command));
+                })
+                .orElse(Result.failure(new CommandFailure.VehicleNotFound()));
     }
 }
