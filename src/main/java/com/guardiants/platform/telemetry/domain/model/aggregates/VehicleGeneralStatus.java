@@ -45,4 +45,9 @@ public class VehicleGeneralStatus extends AbstractDomainAggregateRoot<VehicleGen
         this.latestPointId = point.getId();
         this.lastUpdatedAt = Instant.now();
     }
+
+    public void setEngineLocked(boolean locked) {
+        this.isLocked = locked;
+        this.lastUpdatedAt = Instant.now();
+    }
 }
