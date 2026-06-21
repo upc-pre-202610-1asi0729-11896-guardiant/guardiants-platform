@@ -3,8 +3,10 @@ package com.guardiants.platform.telemetry.interfaces.rest;
 import com.guardiants.platform.telemetry.application.commandservices.TelemetryCommandService;
 import com.guardiants.platform.telemetry.application.queryservices.TelemetryQueryService;
 import com.guardiants.platform.telemetry.domain.model.queries.GetLatestTelemetryPointQuery;
+import com.guardiants.platform.telemetry.domain.model.queries.GetRouteHistoryQuery;
 import com.guardiants.platform.telemetry.domain.model.queries.GetVehicleGeneralStatusQuery;
 import com.guardiants.platform.telemetry.domain.repositories.TelemetryPointRepository;
+import com.guardiants.platform.telemetry.interfaces.rest.transform.RouteSegmentResourceFromEntityAssembler;
 import com.guardiants.platform.telemetry.interfaces.rest.resources.IngestTelemetryPointResource;
 import com.guardiants.platform.telemetry.interfaces.rest.transform.IngestTelemetryPointCommandFromResourceAssembler;
 import com.guardiants.platform.telemetry.interfaces.rest.transform.ResponseEntityFromTelemetryCommandResultAssembler;
@@ -17,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -84,5 +88,22 @@ public class TelemetryController {
         }
         return ResponseEntity.ok(
                 TelemetryPointResourceFromEntityAssembler.toResourceFromEntity(point.get()));
+    }
+
+    @Operation(summary = "Get route history",
+            description = "Returns all route segments for a vehicle within a date range (US03).")
+    @GetMapping("/vehicles/{vehicleId}/routes")
+    public ResponseEntity<?> getRouteHistory(
+            @PathVariable Long vehicleId,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        log.debug("GET /api/v1/telemetry/vehicles/{}/routes - from={} to={}",
+                vehicleId, startDate, endDate);
+        var query = new GetRouteHistoryQuery(
+                vehicleId, Instant.parse(startDate), Instant.parse(endDate));
+        var resources = telemetryQueryService.handle(query).stream()
+                .map(RouteSegmentResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 }
