@@ -1,9 +1,12 @@
 package com.guardiants.platform.alerting.interfaces.rest;
 
 import com.guardiants.platform.alerting.application.commandservices.AlertRuleCommandService;
+import com.guardiants.platform.alerting.application.queryservices.AlertRuleQueryService;
+import com.guardiants.platform.alerting.domain.model.queries.GetAlertRulesByOwnerIdQuery;
 import com.guardiants.platform.alerting.interfaces.rest.resources.CreateAlertRuleResource;
 import com.guardiants.platform.alerting.interfaces.rest.resources.UpdateAlertRuleResource;
 import com.guardiants.platform.alerting.interfaces.rest.transform.CreateAlertRuleCommandFromResourceAssembler;
+import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromAlertRuleQueryResultAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.UpdateAlertRuleCommandFromResourceAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromAlertRuleCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,11 +26,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class AlertRulesController {
 
     private final AlertRuleCommandService alertRuleCommandService;
+    private final AlertRuleQueryService alertRuleQueryService;
     private final MessageSource messageSource;
 
     public AlertRulesController(AlertRuleCommandService alertRuleCommandService,
+                                AlertRuleQueryService alertRuleQueryService,
                                 MessageSource messageSource) {
         this.alertRuleCommandService = alertRuleCommandService;
+        this.alertRuleQueryService = alertRuleQueryService;
         this.messageSource = messageSource;
     }
 
@@ -51,5 +57,13 @@ public class AlertRulesController {
         var result = alertRuleCommandService.handle(command);
         return ResponseEntityFromAlertRuleCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Get alert rules by owner", description = "Returns all alert rules configured by an owner.")
+    @GetMapping
+    public ResponseEntity<?> getAlertRules(@RequestParam Long ownerId) {
+        log.debug("GET /api/v1/alert-rules?ownerId={}", ownerId);
+        var rules = alertRuleQueryService.handle(new GetAlertRulesByOwnerIdQuery(ownerId));
+        return ResponseEntityFromAlertRuleQueryResultAssembler.toResponseEntityFromList(rules);
     }
 }
