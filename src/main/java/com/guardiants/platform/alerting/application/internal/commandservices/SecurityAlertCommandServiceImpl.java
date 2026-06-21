@@ -4,7 +4,9 @@ import com.guardiants.platform.alerting.application.commandservices.SecurityAler
 import com.guardiants.platform.alerting.application.commandservices.SecurityAlertCommandService;
 import com.guardiants.platform.alerting.application.internal.outboundservices.fcm.PushNotificationPort;
 import com.guardiants.platform.alerting.domain.model.aggregates.SecurityAlert;
+import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
 import com.guardiants.platform.alerting.domain.model.commands.GenerateSecurityAlertCommand;
+import com.guardiants.platform.alerting.domain.model.events.AlertAcknowledgedEvent;
 import com.guardiants.platform.alerting.domain.model.events.SecurityAlertGeneratedEvent;
 import com.guardiants.platform.alerting.domain.repositories.NotificationPreferencesRepository;
 import com.guardiants.platform.alerting.domain.repositories.SecurityAlertRepository;
@@ -46,5 +48,22 @@ public class SecurityAlertCommandServiceImpl implements SecurityAlertCommandServ
                 saved.getId(), saved.getOwnerId(), saved.getVehicleId(), saved.getSeverity()));
 
         return Result.success(saved);
+    }
+
+    @Override
+    public Result<SecurityAlert, SecurityAlertCommandFailure> handle(AcknowledgeAlertCommand command) {
+        return securityAlertRepository.findById(command.alertId())
+                .map(alert -> {
+                    try {
+                        alert.acknowledge();
+                        var saved = securityAlertRepository.save(alert);
+                        eventPublisher.publishEvent(new AlertAcknowledgedEvent(saved.getId()));
+                        return Result.<SecurityAlert, SecurityAlertCommandFailure>success(saved);
+                    } catch (IllegalStateException e) {
+                        return Result.<SecurityAlert, SecurityAlertCommandFailure>failure(
+                                new SecurityAlertCommandFailure.InvalidStatusTransition());
+                    }
+                })
+                .orElse(Result.failure(new SecurityAlertCommandFailure.AlertNotFound()));
     }
 }
