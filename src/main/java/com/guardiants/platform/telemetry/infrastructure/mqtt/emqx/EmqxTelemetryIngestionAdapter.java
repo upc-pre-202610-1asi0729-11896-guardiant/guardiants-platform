@@ -14,12 +14,10 @@ import java.time.Instant;
 public class EmqxTelemetryIngestionAdapter implements TelemetryIngestionPort {
 
     private final TelemetryCommandService telemetryCommandService;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public EmqxTelemetryIngestionAdapter(TelemetryCommandService telemetryCommandService,
-                                         ObjectMapper objectMapper) {
+    public EmqxTelemetryIngestionAdapter(TelemetryCommandService telemetryCommandService) {
         this.telemetryCommandService = telemetryCommandService;
-        this.objectMapper = objectMapper;
     }
 
     @Override
