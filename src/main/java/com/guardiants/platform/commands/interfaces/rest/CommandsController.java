@@ -1,7 +1,9 @@
 package com.guardiants.platform.commands.interfaces.rest;
 
 import com.guardiants.platform.commands.application.commandservices.CommandCommandService;
+import com.guardiants.platform.commands.domain.model.commands.IssueDeviceRestartCommand;
 import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
+import com.guardiants.platform.commands.interfaces.rest.resources.IssueDeviceRestartResource;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineBlockResource;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineUnblockResource;
 import com.guardiants.platform.commands.interfaces.rest.transform.IssueEngineBlockCommandFromResourceAssembler;
@@ -51,6 +53,16 @@ public class CommandsController {
             @Valid @RequestBody IssueEngineUnblockResource resource) {
         var result = commandCommandService.handle(
                 new IssueEngineUnblockCommand(resource.vehicleId(), resource.issuedByUserId()));
+        return ResponseEntityFromCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Issue device restart command")
+    @PostMapping("/device-restart")
+    public ResponseEntity<?> issueDeviceRestart(
+            @Valid @RequestBody IssueDeviceRestartResource resource) {
+        var result = commandCommandService.handle(
+                new IssueDeviceRestartCommand(resource.vehicleId(), resource.issuedByUserId()));
         return ResponseEntityFromCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
