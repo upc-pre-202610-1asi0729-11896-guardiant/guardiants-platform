@@ -1,7 +1,9 @@
 package com.guardiants.platform.commands.interfaces.rest;
 
 import com.guardiants.platform.commands.application.commandservices.CommandCommandService;
+import com.guardiants.platform.commands.domain.model.commands.IssueEngineUnblockCommand;
 import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineBlockResource;
+import com.guardiants.platform.commands.interfaces.rest.resources.IssueEngineUnblockResource;
 import com.guardiants.platform.commands.interfaces.rest.transform.IssueEngineBlockCommandFromResourceAssembler;
 import com.guardiants.platform.commands.interfaces.rest.transform.ResponseEntityFromCommandResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +41,16 @@ public class CommandsController {
         var command = IssueEngineBlockCommandFromResourceAssembler
                 .toCommandFromResource(resource);
         var result = commandCommandService.handle(command);
+        return ResponseEntityFromCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Issue engine unblock command")
+    @PostMapping("/engine-unblock")
+    public ResponseEntity<?> issueEngineUnblock(
+            @Valid @RequestBody IssueEngineUnblockResource resource) {
+        var result = commandCommandService.handle(
+                new IssueEngineUnblockCommand(resource.vehicleId(), resource.issuedByUserId()));
         return ResponseEntityFromCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
