@@ -1,10 +1,13 @@
 package com.guardiants.platform.commands.domain.model.aggregates;
 
+import com.guardiants.platform.commands.domain.model.commands.GenerateLocationShareLinkCommand;
 import com.guardiants.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -26,6 +29,16 @@ public class LocationShareLink extends AbstractDomainAggregateRoot<LocationShare
 
     @Column(nullable = false)
     private Instant expiresAt;
+
+    public LocationShareLink(GenerateLocationShareLinkCommand command) {
+        this.vehicleId = command.vehicleId();
+        this.createdByUserId = command.createdByUserId();
+        this.token = UUID.randomUUID().toString();
+        this.createdAt = Instant.now();
+        this.expiresAt = command.expiresAt() != null
+                ? command.expiresAt()
+                : Instant.now().plus(24, ChronoUnit.HOURS);
+    }
 
     /** Reconstruction constructor used by persistence assemblers. */
     public LocationShareLink(Long vehicleId, Long createdByUserId, String token,
