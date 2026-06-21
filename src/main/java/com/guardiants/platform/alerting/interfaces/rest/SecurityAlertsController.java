@@ -1,11 +1,16 @@
 package com.guardiants.platform.alerting.interfaces.rest;
 
 import com.guardiants.platform.alerting.application.commandservices.SecurityAlertCommandService;
+import com.guardiants.platform.alerting.application.queryservices.SecurityAlertQueryService;
 import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
 import com.guardiants.platform.alerting.domain.model.commands.CloseAlertCommand;
+import com.guardiants.platform.alerting.domain.model.queries.GetSecurityAlertsByOwnerIdQuery;
+import com.guardiants.platform.alerting.domain.model.valueobjects.AlertFilterCategory;
+import com.guardiants.platform.alerting.domain.model.valueobjects.AlertPeriod;
 import com.guardiants.platform.alerting.interfaces.rest.resources.GenerateSecurityAlertResource;
 import com.guardiants.platform.alerting.interfaces.rest.transform.GenerateSecurityAlertCommandFromResourceAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromSecurityAlertCommandResultAssembler;
+import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromSecurityAlertQueryResultAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,11 +28,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class SecurityAlertsController {
 
     private final SecurityAlertCommandService securityAlertCommandService;
+    private final SecurityAlertQueryService securityAlertQueryService;
     private final MessageSource messageSource;
 
     public SecurityAlertsController(SecurityAlertCommandService securityAlertCommandService,
+                                    SecurityAlertQueryService securityAlertQueryService,
                                     MessageSource messageSource) {
         this.securityAlertCommandService = securityAlertCommandService;
+        this.securityAlertQueryService = securityAlertQueryService;
         this.messageSource = messageSource;
     }
 
@@ -60,5 +68,21 @@ public class SecurityAlertsController {
         var result = securityAlertCommandService.handle(new CloseAlertCommand(alertId));
         return ResponseEntityFromSecurityAlertCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Get security alerts by owner",
+            description = "Returns security alerts filtered by category (ALL/UNREAD/URGENT) and period.")
+    @GetMapping
+    public ResponseEntity<?> getSecurityAlerts(
+            @RequestParam Long ownerId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String period) {
+        log.debug("GET /api/v1/security-alerts?ownerId={}&category={}&period={}", ownerId, category, period);
+        var query = new GetSecurityAlertsByOwnerIdQuery(
+                ownerId,
+                category != null ? AlertFilterCategory.valueOf(category) : null,
+                period != null ? AlertPeriod.valueOf(period) : null);
+        var alerts = securityAlertQueryService.handle(query);
+        return ResponseEntityFromSecurityAlertQueryResultAssembler.toResponseEntityFromList(alerts);
     }
 }
