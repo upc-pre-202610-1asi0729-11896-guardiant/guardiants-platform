@@ -77,6 +77,13 @@ public class SecurityAlert extends AbstractDomainAggregateRoot<SecurityAlert> {
         this.closedAt = closedAt;
     }
 
+    public void acknowledge() {
+        if (!canBeAcknowledged())
+            throw new IllegalStateException("alerting.error.invalidStatusTransition");
+        this.status = AlertStatus.ACKNOWLEDGED;
+        this.acknowledgedAt = Instant.now();
+    }
+
     public boolean isUnread() { return status == AlertStatus.GENERATED; }
     public boolean isUrgent() { return severity == AlertSeverity.CRITICAL; }
     public boolean canBeAcknowledged() { return status == AlertStatus.GENERATED; }
