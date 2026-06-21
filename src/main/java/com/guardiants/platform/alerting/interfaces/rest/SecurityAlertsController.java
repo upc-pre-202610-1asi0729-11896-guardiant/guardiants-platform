@@ -1,6 +1,7 @@
 package com.guardiants.platform.alerting.interfaces.rest;
 
 import com.guardiants.platform.alerting.application.commandservices.SecurityAlertCommandService;
+import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
 import com.guardiants.platform.alerting.interfaces.rest.resources.GenerateSecurityAlertResource;
 import com.guardiants.platform.alerting.interfaces.rest.transform.GenerateSecurityAlertCommandFromResourceAssembler;
 import com.guardiants.platform.alerting.interfaces.rest.transform.ResponseEntityFromSecurityAlertCommandResultAssembler;
@@ -38,6 +39,15 @@ public class SecurityAlertsController {
                 resource.vehicleId(), resource.type());
         var command = GenerateSecurityAlertCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = securityAlertCommandService.handle(command);
+        return ResponseEntityFromSecurityAlertCommandResultAssembler
+                .toResponseEntityFromResult(result, messageSource);
+    }
+
+    @Operation(summary = "Acknowledge alert", description = "Marks a security alert as read/acknowledged.")
+    @PatchMapping("/{alertId}/acknowledge")
+    public ResponseEntity<?> acknowledgeAlert(@PathVariable Long alertId) {
+        log.debug("PATCH /api/v1/security-alerts/{}/acknowledge", alertId);
+        var result = securityAlertCommandService.handle(new AcknowledgeAlertCommand(alertId));
         return ResponseEntityFromSecurityAlertCommandResultAssembler
                 .toResponseEntityFromResult(result, messageSource);
     }
