@@ -2,12 +2,14 @@ package com.guardiants.platform.alerting.application.internal.queryservices;
 
 import com.guardiants.platform.alerting.application.queryservices.SecurityAlertQueryService;
 import com.guardiants.platform.alerting.domain.model.aggregates.SecurityAlert;
+import com.guardiants.platform.alerting.domain.model.queries.GetSecurityAlertByIdQuery;
 import com.guardiants.platform.alerting.domain.model.queries.GetSecurityAlertsByOwnerIdQuery;
 import com.guardiants.platform.alerting.domain.repositories.SecurityAlertRepository;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SecurityAlertQueryServiceImpl implements SecurityAlertQueryService {
@@ -23,6 +25,11 @@ public class SecurityAlertQueryServiceImpl implements SecurityAlertQueryService 
         var all = securityAlertRepository.findAllByOwnerId(query.ownerId());
         var filtered = applyPeriodFilter(all, query);
         return applyCategoryFilter(filtered, query);
+    }
+
+    @Override
+    public Optional<SecurityAlert> handle(GetSecurityAlertByIdQuery query) {
+        return securityAlertRepository.findById(query.alertId());
     }
 
     private List<SecurityAlert> applyPeriodFilter(List<SecurityAlert> alerts,
