@@ -4,6 +4,7 @@ import com.guardiants.platform.alerting.application.commandservices.AlertRuleCom
 import com.guardiants.platform.alerting.application.commandservices.AlertRuleCommandService;
 import com.guardiants.platform.alerting.domain.model.aggregates.AlertRule;
 import com.guardiants.platform.alerting.domain.model.commands.CreateAlertRuleCommand;
+import com.guardiants.platform.alerting.domain.model.commands.UpdateAlertRuleCommand;
 import com.guardiants.platform.alerting.domain.repositories.AlertRuleRepository;
 import com.guardiants.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -26,5 +27,16 @@ public class AlertRuleCommandServiceImpl implements AlertRuleCommandService {
         } catch (IllegalArgumentException e) {
             return Result.failure(new AlertRuleCommandFailure.InvalidGeofence());
         }
+    }
+
+    @Override
+    public Result<AlertRule, AlertRuleCommandFailure> handle(UpdateAlertRuleCommand command) {
+        return alertRuleRepository.findById(command.ruleId())
+                .map(rule -> {
+                    rule.update(command);
+                    return Result.<AlertRule, AlertRuleCommandFailure>success(
+                            alertRuleRepository.save(rule));
+                })
+                .orElse(Result.failure(new AlertRuleCommandFailure.AlertRuleNotFound()));
     }
 }
