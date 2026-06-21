@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,6 +21,6 @@ public class DrivingReportView {
     private double drivingScore;
     private int harshBrakingEvents;
     private int harshAccelerationEvents;
-    // riskPatterns added in feature 2
+    private List<RiskPatternView> riskPatterns = new ArrayList<>();
     public boolean hasData() { return vehicleId != null; }
 }
