@@ -7,10 +7,15 @@ import com.guardiants.platform.telemetry.application.internal.outboundservices.e
 import com.guardiants.platform.telemetry.domain.model.aggregates.TelemetryPoint;
 import com.guardiants.platform.telemetry.domain.model.aggregates.VehicleGeneralStatus;
 import com.guardiants.platform.telemetry.domain.model.commands.IngestTelemetryPointCommand;
+import com.guardiants.platform.telemetry.domain.model.commands.UpdateVehicleConnectivityCommand;
+import com.guardiants.platform.telemetry.domain.model.events.DeviceConnectionRestoredEvent;
+import com.guardiants.platform.telemetry.domain.model.events.GpsSignalLostEvent;
 import com.guardiants.platform.telemetry.domain.model.events.TelemetryPointRegisteredEvent;
+import com.guardiants.platform.telemetry.domain.model.valueobjects.ConnectivityValue;
 import com.guardiants.platform.telemetry.domain.repositories.TelemetryPointRepository;
 import com.guardiants.platform.telemetry.domain.repositories.VehicleGeneralStatusRepository;
 import com.guardiants.platform.shared.application.result.Result;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,16 +25,19 @@ public class TelemetryCommandServiceImpl implements TelemetryCommandService {
     private final VehicleGeneralStatusRepository vehicleGeneralStatusRepository;
     private final FleetVehicleService fleetVehicleService;
     private final TelemetryEventPublisher telemetryEventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TelemetryCommandServiceImpl(
             TelemetryPointRepository telemetryPointRepository,
             VehicleGeneralStatusRepository vehicleGeneralStatusRepository,
             FleetVehicleService fleetVehicleService,
-            TelemetryEventPublisher telemetryEventPublisher) {
+            TelemetryEventPublisher telemetryEventPublisher,
+            ApplicationEventPublisher eventPublisher) {
         this.telemetryPointRepository = telemetryPointRepository;
         this.vehicleGeneralStatusRepository = vehicleGeneralStatusRepository;
         this.fleetVehicleService = fleetVehicleService;
         this.telemetryEventPublisher = telemetryEventPublisher;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -58,5 +66,22 @@ public class TelemetryCommandServiceImpl implements TelemetryCommandService {
         } catch (IllegalArgumentException e) {
             return Result.failure(new TelemetryCommandFailure.InvalidPayload());
         }
+    }
+
+    @Override
+    public Result<TelemetryPoint, TelemetryCommandFailure> handle(
+            UpdateVehicleConnectivityCommand command) {
+        return telemetryPointRepository.findLatestByVehicleId(command.vehicleId())
+                .map(latest -> {
+                    if (command.connectivity() == ConnectivityValue.GPS_SIGNAL_LOST) {
+                        eventPublisher.publishEvent(
+                                new GpsSignalLostEvent(command.vehicleId(), command.occurredAt()));
+                    } else if (command.connectivity() == ConnectivityValue.RECONNECTED) {
+                        eventPublisher.publishEvent(
+                                new DeviceConnectionRestoredEvent(command.vehicleId(), command.occurredAt()));
+                    }
+                    return Result.<TelemetryPoint, TelemetryCommandFailure>success(latest);
+                })
+                .orElse(Result.failure(new TelemetryCommandFailure.VehicleNotFound()));
     }
 }

@@ -26,6 +26,12 @@ public class TelemetryPointRepositoryImpl implements TelemetryPointRepository {
     }
 
     @Override
+    public Optional<TelemetryPoint> findLatestByVehicleId(Long vehicleId) {
+        return persistenceRepository.findFirstByVehicleIdOrderByTimestampDesc(vehicleId)
+                .map(assembler::toDomainFromPersistenceEntity);
+    }
+
+    @Override
     public TelemetryPoint save(TelemetryPoint point) {
         return assembler.toDomainFromPersistenceEntity(
                 persistenceRepository.save(assembler.toPersistenceEntityFromDomain(point)));

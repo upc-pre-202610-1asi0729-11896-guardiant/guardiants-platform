@@ -5,5 +5,6 @@ import java.util.Optional;
 
 public interface TelemetryPointRepository {
     Optional<TelemetryPoint> findById(Long id);
+    Optional<TelemetryPoint> findLatestByVehicleId(Long vehicleId);
     TelemetryPoint save(TelemetryPoint point);
 }
