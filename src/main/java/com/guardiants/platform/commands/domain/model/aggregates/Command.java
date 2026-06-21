@@ -60,6 +60,15 @@ public class Command extends AbstractDomainAggregateRoot<Command> {
         this.issuedAt = Instant.now();
     }
 
+    /** Constructor — DEVICE_RESTART */
+    public Command(IssueDeviceRestartCommand command) {
+        this.vehicleId = command.vehicleId();
+        this.issuedByUserId = command.issuedByUserId();
+        this.type = CommandType.DEVICE_RESTART;
+        this.status = CommandStatus.ISSUED;
+        this.issuedAt = Instant.now();
+    }
+
     /** Reconstruction constructor used by persistence assemblers. */
     public Command(Long vehicleId, Long issuedByUserId, CommandType type, Long triggeredByAlertId,
                    CommandStatus status, Instant issuedAt, Instant dispatchedAt,
