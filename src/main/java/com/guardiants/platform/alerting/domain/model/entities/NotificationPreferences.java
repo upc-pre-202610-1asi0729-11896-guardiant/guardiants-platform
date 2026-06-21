@@ -1,5 +1,6 @@
 package com.guardiants.platform.alerting.domain.model.entities;
 
+import com.guardiants.platform.alerting.domain.model.commands.UpdateNotificationPreferencesCommand;
 import com.guardiants.platform.alerting.domain.model.valueobjects.AlertType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,6 +34,16 @@ public class NotificationPreferences {
 
     public NotificationPreferences(Long ownerId) {
         this.ownerId = ownerId;
+        this.updatedAt = Instant.now();
+    }
+
+    public void update(UpdateNotificationPreferencesCommand command) {
+        if (command.securityAlertsEnabled() != null)
+            this.securityAlertsEnabled = command.securityAlertsEnabled();
+        if (command.liveLocationEnabled() != null)
+            this.liveLocationEnabled = command.liveLocationEnabled();
+        if (command.maintenanceRemindersEnabled() != null)
+            this.maintenanceRemindersEnabled = command.maintenanceRemindersEnabled();
         this.updatedAt = Instant.now();
     }
 
