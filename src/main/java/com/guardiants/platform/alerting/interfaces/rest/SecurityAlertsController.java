@@ -4,6 +4,7 @@ import com.guardiants.platform.alerting.application.commandservices.SecurityAler
 import com.guardiants.platform.alerting.application.queryservices.SecurityAlertQueryService;
 import com.guardiants.platform.alerting.domain.model.commands.AcknowledgeAlertCommand;
 import com.guardiants.platform.alerting.domain.model.commands.CloseAlertCommand;
+import com.guardiants.platform.alerting.domain.model.queries.GetSecurityAlertByIdQuery;
 import com.guardiants.platform.alerting.domain.model.queries.GetSecurityAlertsByOwnerIdQuery;
 import com.guardiants.platform.alerting.domain.model.valueobjects.AlertFilterCategory;
 import com.guardiants.platform.alerting.domain.model.valueobjects.AlertPeriod;
@@ -84,5 +85,17 @@ public class SecurityAlertsController {
                 period != null ? AlertPeriod.valueOf(period) : null);
         var alerts = securityAlertQueryService.handle(query);
         return ResponseEntityFromSecurityAlertQueryResultAssembler.toResponseEntityFromList(alerts);
+    }
+
+    @Operation(summary = "Get security alert by ID", description = "Returns the detail of a single security alert.")
+    @GetMapping("/{alertId}")
+    public ResponseEntity<?> getSecurityAlertById(@PathVariable Long alertId) {
+        log.debug("GET /api/v1/security-alerts/{}", alertId);
+        var alert = securityAlertQueryService.handle(new GetSecurityAlertByIdQuery(alertId));
+        if (alert.isEmpty()) {
+            return ResponseEntityFromSecurityAlertQueryResultAssembler
+                    .notFound(messageSource, "alerting.error.alertNotFound", alertId);
+        }
+        return ResponseEntityFromSecurityAlertQueryResultAssembler.toResponseEntityFromAlert(alert);
     }
 }
