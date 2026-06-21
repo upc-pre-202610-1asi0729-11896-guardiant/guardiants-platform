@@ -5,6 +5,7 @@ import com.guardiants.platform.alerting.domain.repositories.SecurityAlertReposit
 import com.guardiants.platform.alerting.infrastructure.persistence.jpa.assemblers.SecurityAlertEntityAssembler;
 import com.guardiants.platform.alerting.infrastructure.persistence.jpa.repositories.SecurityAlertPersistenceRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,6 +23,12 @@ public class SecurityAlertRepositoryImpl implements SecurityAlertRepository {
     @Override
     public Optional<SecurityAlert> findById(Long id) {
         return persistenceRepository.findById(id).map(assembler::toDomainFromPersistenceEntity);
+    }
+
+    @Override
+    public List<SecurityAlert> findAllByOwnerId(Long ownerId) {
+        return persistenceRepository.findAllByOwnerId(ownerId).stream()
+                .map(assembler::toDomainFromPersistenceEntity).toList();
     }
 
     @Override
